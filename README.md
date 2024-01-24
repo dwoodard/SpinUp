@@ -1,26 +1,27 @@
 # Laravel Installer
 
-<a href="https://github.com/laravel/installer/actions"><img src="https://github.com/laravel/installer/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/installer"><img src="https://img.shields.io/packagist/dt/laravel/installer" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/installer"><img src="https://img.shields.io/packagist/v/laravel/installer" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/installer"><img src="https://img.shields.io/packagist/l/laravel/installer" alt="License"></a>
+![Build Status](https://github.com/laravel/installer/workflows/tests/badge.svg)
+![Total Downloads](https://img.shields.io/packagist/dt/laravel/installer)
+![Latest Stable Version](https://img.shields.io/packagist/v/laravel/installer)
+![License](https://img.shields.io/packagist/l/laravel/installer)
+
+## Introduction
+
+The Laravel Installer is a convenient tool to help you set up and create Laravel projects effortlessly. It streamlines the process of getting started with Laravel, making it easier for developers to begin building their web applications. This README will guide you through the steps of installing Laravel using the Laravel Installer.
 
 ## Official Documentation
 
-Documentation for installing Laravel can be found on the [Laravel website](https://laravel.com/docs#creating-a-laravel-project).
+For comprehensive instructions on installing Laravel using the Laravel Installer, please refer to the [official Laravel documentation](https://laravel.com/docs#creating-a-laravel-project).
 
-## Contributing
+## How to Install Laravel
 
-Thank you for considering contributing to the Installer! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+To install Laravel using the Laravel Installer, follow these steps:
 
-## Code of Conduct
+1. **Install Composer**: Make sure you have [Composer](https://getcomposer.org/download/) installed on your system. Composer is a PHP package manager that Laravel depends on.
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+2. **Install Laravel Installer**:
 
-## Security Vulnerabilities
+   You can install the Laravel Installer globally on your system by running the following command in your terminal:
 
-Please review [our security policy](https://github.com/laravel/installer/security/policy) on how to report security vulnerabilities.
-
-## License
-
-Laravel Installer is open-sourced software licensed under the [MIT license](LICENSE.md).
+   ```bash
+   composer global require dwoodard/laravel_installer

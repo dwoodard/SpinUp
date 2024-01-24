@@ -1,12 +1,12 @@
 {
-    "name": "laravel/installer",
-    "description": "Laravel application installer.",
+    "name": "dwoodard/laravel_installer",
+    "description": "Custom Laravel application installer.",
     "keywords": ["laravel"],
     "license": "MIT",
     "authors": [
         {
-            "name": "Taylor Otwell",
-            "email": "taylor@laravel.com"
+            "name": "Dustin Woodard",
+            "email": "dustin.woodard@gmail.com"
         }
     ],
     "require": {
