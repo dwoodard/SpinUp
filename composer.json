@@ -11,7 +11,7 @@
     ],
     "require": {
         "php": "^8.2",
-        "dwoodard/laravel-installer": "^1.5",
+        "dwoodard/laravel-installer": "*"
         "illuminate/filesystem": "^10.20|^11.0",
         "illuminate/support": "^10.20|^11.0",
         "laravel/prompts": "^0.1",
