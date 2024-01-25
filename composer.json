@@ -1,43 +1,42 @@
 {
-    "name": "dwoodard/laravel_installer",
-    "description": "Custom Laravel application installer.",
-    "keywords": ["laravel"],
-    "license": "MIT",
-    "authors": [
-        {
-            "name": "Dustin Woodard",
-            "email": "dustin.woodard@gmail.com"
-        }
-    ],
-    "require": {
-        "php": "^8.2",
-        "illuminate/filesystem": "^10.20|^11.0",
-        "illuminate/support": "^10.20|^11.0",
-        "laravel/prompts": "^0.1",
-        "spiral/logger": "^3.11",
-        "symfony/console": "^6.2|^7.0",
-        "symfony/process": "^6.2|^7.0"
-    },
-    "require-dev": {
-        "phpstan/phpstan": "^1.10",
-        "phpunit/phpunit": "^10.4"
-    },
-    "bin": [
-        "bin/laravel"
-    ],
-    "autoload": {
-        "psr-4": {
-            "Laravel\\Installer\\Console\\": "src/"
-        }
-    },
-    "autoload-dev": {
-        "psr-4": {
-            "Laravel\\Installer\\Console\\Tests\\": "tests/"
-        }
-    },
-    "config": {
-        "sort-packages": true
-    },
-    "minimum-stability": "dev",
-    "prefer-stable": false
+  "name": "dwoodard/laravel_installer",
+  "description": "Custom Laravel application installer.",
+  "keywords": ["laravel"],
+  "license": "MIT",
+  "authors": [
+      {
+        "name": "Dustin Woodard",
+        "email": "dustin.woodard@gmail.com"
+  }
+  ],
+  "require": {
+      "php": "^8.2",
+      "illuminate/filesystem": "^10.20|^11.0",
+      "illuminate/support": "^10.20|^11.0",
+      "laravel/prompts": "^0.1",
+      "symfony/console": "^6.2|^7.0",
+      "symfony/process": "^6.2|^7.0"
+  },
+  "require-dev": {
+      "phpstan/phpstan": "^1.10",
+      "phpunit/phpunit": "^10.4"
+  },
+  "bin": [
+      "bin/laravel"
+  ],
+  "autoload": {
+      "psr-4": {
+          "Laravel\\Installer\\Console\\": "src/"
+      }
+  },
+  "autoload-dev": {
+      "psr-4": {
+          "Laravel\\Installer\\Console\\Tests\\": "tests/"
+      }
+  },
+  "config": {
+      "sort-packages": true
+  },
+  "minimum-stability": "dev",
+  "prefer-stable": true
 }
