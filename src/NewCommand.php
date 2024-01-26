@@ -68,6 +68,10 @@ class NewCommand extends Command
             ->addOption('force', 'f', InputOption::VALUE_NONE, 'Forces install even if the directory already exists')
             ->addOption('dev', null, InputOption::VALUE_NONE, 'Installs the latest "development" release')
             ->addOption('laravel-quiet', null, InputOption::VALUE_OPTIONAL, 'Dont show any Laravel Install', true)
+            ->addOption('laradock-quiet', null, InputOption::VALUE_OPTIONAL, 'Dont show any Laradock Install', true)
+            // stack
+            ->addOption('stack', null, InputOption::VALUE_OPTIONAL, 'The stack that should be installed', 'livewire')
+            // laradock-quiet
 
             //add laradock
             ->addOption('laradock', null, InputOption::VALUE_NONE, 'Installs the Laradock scaffolding (in project)')
@@ -106,12 +110,15 @@ class NewCommand extends Command
   ┗┓┏┓┓┏┓┃┃┏┓
   ┗┛┣┛┗┛┗┗┛┣┛
     ┛      ┛
-    </>'
+    </>
+'
                 // show name of the project if passed as an argument
                 . ($input->getArgument('name') ? ' - Name: <options=bold>' . $input->getArgument('name') . '</>' . PHP_EOL : '')
                 . ($input->getArgument('name') ? ' - Project directory: <options=bold>' . getcwd() . '/' . $input->getArgument('name') . '</>' . PHP_EOL : '')
                 . ($input->getOption('laradock') ? ' - Laradock: <options=bold>Yes</>' . PHP_EOL : '')
                 . ($input->getOption('pest') ? ' - Pest: <options=bold>Yes</>' . PHP_EOL : '')
+                . ($input->getOption('force') ? ' - Force Delete Project: <options=bold>Yes</>' . PHP_EOL : '')
+                . PHP_EOL
         );
 
         // if not set, ask for the name of the project
@@ -125,19 +132,7 @@ class NewCommand extends Command
                     : null,
             ));
         }
-
-        // if not set, ask if they want to install laradock
-        if (!$input->getOption('laradock')) {
-            $input->setOption('laradock', confirm(
-                label: 'Would you like to install Laradock?',
-                default: false,
-            ));
-        }
     }
-
-
-
-
 
 
     /**
@@ -149,30 +144,30 @@ class NewCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        // if vvv is passed, show the file and line number
         $output->writeln('  <bg=blue;fg=black> Excuting... </> '  . '<fg=blue>' . __FILE__ . ':' . __LINE__ . '</>' . PHP_EOL, OutputInterface::VERBOSITY_VERBOSE);
 
-
         //SETUP
+        $this->name = $input->getArgument('name');
+        $this->directory =  ($this->name === '.') ? getcwd() : getcwd() . '/' . $this->name;
+        $this->composer = new Composer(new Filesystem(), $this->directory);
+
 
         // Now that we have the name, we can check if the directory exists
-        $this->checkIfDirectoryExists($input, $output);
+        $this->handleIfExsistingProject($input, $output);
 
-
-        //Install Laravel
+        // Install Laravel
         $this->installLaravel($input, $output);
 
         // Install Laradock
-        if ($input->getOption('laradock')) {
-            $this->installLaradock($input, $output);
-        }
+        $this->installLaradock($input, $output);
 
+        // Install Breeze
+        $this->installBreeze($input, $output, $this->directory);
 
 
         // runCheckIfForceOptionIsPassed($input, $output);
 
         // runInstallComposerPackages($input, $output);
-        // runInstallPest($input, $output);
         // runInstallBreeze($input, $output);
 
 
@@ -217,28 +212,25 @@ class NewCommand extends Command
     }
 
 
-    protected function checkIfDirectoryExists(InputInterface $input, OutputInterface $output)
+
+
+
+
+    protected function handleIfExsistingProject(InputInterface $input, OutputInterface $output)
     {
-        $name = $input->getArgument('name');
-        $this->directory = $directory = ($name === '.') ? getcwd() : getcwd() . '/' . $name;
 
-        $commands = [];
+        //  -f, --force
+        // if -f is passed, delete the project if it exists
 
-        if ($this->directory != '.' && $input->getOption('force')) {
-            if (PHP_OS_FAMILY == 'Windows') {
-                array_unshift($commands, "(if exist $this->directory rd /s /q \"$this->directory\")");
-            } else {
-                array_unshift($commands, "rm -rf $this->directory");
-            }
-        }
-
+        // if not -f is passed, ask if they want to delete the project
         if (!$input->getOption('force')) {
-
-            $this->verifyApplicationDoesntExist($directory);
-        }
-
-        if ($input->getOption('force') && $directory === '.') {
-            throw new RuntimeException('Cannot use --force option when using current directory for installation!');
+            $this->verifyApplicationDoesntExist($this->directory);
+        } else {
+            // -f is passed, delete the project if it exists
+            $commands = [
+                'rm -rf ' . $this->directory,
+            ];
+            $this->runCommands($commands, $input, $output);
         }
     }
 
@@ -248,49 +240,88 @@ class NewCommand extends Command
         $version = $this->getVersion($input);
         $quite = $input->getOption('laravel-quiet') ? '--quiet' : '';
 
-        $output->writeln('  <bg=green;fg=black> Installing Laravel... </> ');
+        $this->timeLineOutput(true, $output, 'Installing Laravel...');
 
         $commands = [
             "composer create-project $quite laravel/laravel $this->directory $version --remove-vcs --prefer-dist",
         ];
 
-        $this->runCommands($commands, $input, $output, workingPath: $this->directory);
-    }
+        $this->runCommands($commands, $input, $output);
 
+        // replace last output line with a green checkmark
+        $this->timeLineOutput(true, $output, 'Installing Laravel...',  "✅ done");
+    }
 
     /* Setup Functions */
     protected function installLaradock(InputInterface $input, OutputInterface $output)
     {
-        // install laradock
-        $output->writeln('  <bg=green;fg=black> Installing Laradock... </> ');
+        $this->timeLineOutput(false, $output, 'Installing Laradock...');
 
-        // if laradock-quite is passed, dont show any output
-        $quite = $input->getOption('laravel-quiet') ? '>/dev/null 2>&1' : '';
+        $input->setOption('laradock', $input->getOption('laradock') || confirm(
+            label: 'Would you like to install Laradock?',
+            default: true,
+        ));
 
-        $commands = array_filter([
-            'git clone https://github.com/Laradock/laradock.git laradock ' . $quite,
-            'mkdir data',
-            'cd laradock',
-            'pwd',
+        // if set to no or not interactive, return
+        if (!$input->getOption('laradock')) {
+            return;
+        }
+
+        $quite = $input->getOption('laradock-quiet') ? '>/dev/null 2>&1' : '';
+
+        // first clone the repo
+        $laravelCommands = array_filter([
+            "git clone https://github.com/Laradock/laradock.git laradock $quite",
+        ]);
+        $process = $this->runCommands(
+            $laravelCommands,
+            $input,
+            $output,
+            workingPath: $this->directory,
+        );
+
+        // if process successful, output green checkmark
+        $process->isSuccessful() ?
+            $this->timeLineOutput(true, $output, 'Installing Laradock...',  "✅ done") :
+            $this->timeLineOutput(true, $output, 'Installing Laradock...',  "❌ failed");
+
+
+        // now that it is cloned, we can run command in the directory
+
+        $laradockCommands = array_filter([
             'cp .env.example .env',
             'sed -i "" "s+DATA_PATH_HOST=~/.laradock/data+DATA_PATH_HOST=../data+g" .env',
             'sed -i \'\' \'s:DB_HOST=127.0.0.1:DB_HOST=mysql:g\' .env',
             'sed -i \'\' \'s:REDIS_HOST=127.0.0.1:REDIS_HOST=redis:g\' .env',
             'sed -i \'\' \'s:DB_PASSWORD=.*:DB_PASSWORD=root:g\' .env',
             'echo \'QUEUE_HOST=beanstalkd\' >> .env',
-            'cd ..'
+
         ]);
 
-        $process = $this->runCommands($commands, $input, $output)->isSuccessful();
-        $output->writeln('  <bg=green;fg=black> Laradock installed! </> ' . PHP_EOL);
+        $process = $this->runCommands(
+            $laradockCommands,
+            $input,
+            $output,
+            workingPath: $this->directory . '/laradock',
+        );
     }
 
 
-    //runInitialSetup
-    protected function runInitialSetup(InputInterface $input, OutputInterface $output)
+    // TimeLine Output
+    function timeLineOutput($eraseLine, $output, $message, $status = 'working')
     {
-        $this->configurePrompts($input, $output);
+        if ($eraseLine) {
+            // move cursor up and erase line
+            $output->write("\033[1A"); // Move up
+            $output->write("\033[K"); // Erase line
+            // Move down
+            $output->write("\033[1B");
+        }
+
+        $output->writeln("<bg=green;fg=black> $message </> $status");
     }
+
+
     /* Setup Functions END*/
 
 
@@ -470,14 +501,26 @@ class NewCommand extends Command
      * @param  \Symfony\Component\Console\Output\OutputInterface  $output
      * @return void
      */
-    protected function installBreeze(string $directory, InputInterface $input, OutputInterface $output)
+    protected function installBreeze(InputInterface $input, OutputInterface $output, string $directory)
     {
+
+        // breese stack needs to be set
+        $input->setOption('stack', $input->getOption('stack') ?: select(
+            label: 'Which stack would you like to use?',
+            options: [
+                'livewire' => 'Livewire',
+                'inertia' => 'Inertia',
+            ],
+            default: 'livewire'
+        ));
+
+
         $commands = array_filter([
-            $this->findComposer() . ' require laravel/breeze',
+            'composer require laravel/breeze --dev',
+
             trim(sprintf(
                 $this->phpBinary() . ' artisan breeze:install %s %s %s %s %s',
                 $input->getOption('stack'),
-                $input->getOption('typescript') ? '--typescript' : '',
                 $input->getOption('pest') ? '--pest' : '',
                 $input->getOption('dark') ? '--dark' : '',
                 $input->getOption('ssr') ? '--ssr' : '',
@@ -774,5 +817,95 @@ class NewCommand extends Command
             $file,
             preg_replace($pattern, $replace, file_get_contents($file))
         );
+    }
+
+
+
+    // for reference
+    protected function EXECUTE_MASTER(InputInterface $input, OutputInterface $output): int
+    {
+        $this->validateStackOption($input);
+
+        $name = $input->getArgument('name');
+
+        $directory = $name !== '.' ? getcwd() . '/' . $name : '.';
+
+        $this->composer = new Composer(new Filesystem(), $directory);
+
+        $version = $this->getVersion($input);
+
+        if (!$input->getOption('force')) {
+            $this->verifyApplicationDoesntExist($directory);
+        }
+
+        if ($input->getOption('force') && $directory === '.') {
+            throw new RuntimeException('Cannot use --force option when using current directory for installation!');
+        }
+
+        $composer = $this->findComposer();
+
+        $commands = [
+            $composer . " create-project laravel/laravel \"$directory\" $version --remove-vcs --prefer-dist",
+        ];
+
+        if ($directory != '.' && $input->getOption('force')) {
+            if (PHP_OS_FAMILY == 'Windows') {
+                array_unshift($commands, "(if exist \"$directory\" rd /s /q \"$directory\")");
+            } else {
+                array_unshift($commands, "rm -rf \"$directory\"");
+            }
+        }
+
+        if (PHP_OS_FAMILY != 'Windows') {
+            $commands[] = "chmod 755 \"$directory/artisan\"";
+        }
+
+        if (($process = $this->runCommands($commands, $input, $output))->isSuccessful()) {
+            if ($name !== '.') {
+                $this->replaceInFile(
+                    'APP_URL=http://localhost',
+                    'APP_URL=' . $this->generateAppUrl($name),
+                    $directory . '/.env'
+                );
+
+                [$database, $migrate] = $this->promptForDatabaseOptions($directory, $input);
+
+                $this->configureDefaultDatabaseConnection($directory, $database, $name, $migrate);
+
+                if ($migrate) {
+                    $this->runCommands([
+                        $this->phpBinary() . ' artisan migrate',
+                    ], $input, $output, workingPath: $directory);
+                }
+            }
+
+            if ($input->getOption('git') || $input->getOption('github') !== false) {
+                $this->createRepository($directory, $input, $output);
+            }
+
+            if ($input->getOption('breeze')) {
+                $this->installBreeze($directory, $input, $output);
+            } elseif ($input->getOption('jet')) {
+                $this->installJetstream($directory, $input, $output);
+            } elseif ($input->getOption('pest')) {
+                $this->installPest($directory, $input, $output);
+            }
+
+            if ($input->getOption('github') !== false) {
+                $this->pushToGitHub($name, $directory, $input, $output);
+                $output->writeln('');
+            }
+
+            $output->writeln("  <bg=blue;fg=white> INFO </> Application ready in <options=bold>[{$name}]</>. You can start your local development using:" . PHP_EOL);
+
+            $output->writeln('<fg=gray>➜</> <options=bold>cd ' . $name . '</>');
+            $output->writeln('<fg=gray>➜</> <options=bold>php artisan serve</>');
+            $output->writeln('');
+
+            $output->writeln('  New to Laravel? Check out our <href=https://bootcamp.laravel.com>bootcamp</> and <href=https://laravel.com/docs/installation#next-steps>documentation</>. <options=bold>Build something amazing!</>');
+            $output->writeln('');
+        }
+
+        return $process->getExitCode();
     }
 }
