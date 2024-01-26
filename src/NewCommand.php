@@ -101,13 +101,12 @@ class NewCommand extends Command
 
         $output->write(
             //SpinUp logo
-            PHP_EOL .
-                '  <fg=green>
+            PHP_EOL . '  <fg=green>
   ┏┓  •  ┳┳
   ┗┓┏┓┓┏┓┃┃┏┓
   ┗┛┣┛┗┛┗┗┛┣┛
-    ┛      ┛</>
-'
+    ┛      ┛
+    </>'
                 // show name of the project if passed as an argument
                 . ($input->getArgument('name') ? ' - Name: <options=bold>' . $input->getArgument('name') . '</>' . PHP_EOL : '')
                 . ($input->getArgument('name') ? ' - Project directory: <options=bold>' . getcwd() . '/' . $input->getArgument('name') . '</>' . PHP_EOL : '')
@@ -115,7 +114,7 @@ class NewCommand extends Command
                 . ($input->getOption('pest') ? ' - Pest: <options=bold>Yes</>' . PHP_EOL : '')
         );
 
-        // Set the default name if it is not passed as an argument...
+        // if not set, ask for the name of the project
         if (!$input->getArgument('name')) {
             $input->setArgument('name', text(
                 label: 'What is the name of your project?',
@@ -127,23 +126,13 @@ class NewCommand extends Command
             ));
         }
 
-        // Install Laradock
+        // if not set, ask if they want to install laradock
         if (!$input->getOption('laradock')) {
             $input->setOption('laradock', confirm(
                 label: 'Would you like to install Laradock?',
                 default: false,
             ));
         }
-
-        // Install Breeze
-
-        // Install Pest
-
-        // Install Composer packages
-
-
-
-
     }
 
 
@@ -173,9 +162,6 @@ class NewCommand extends Command
         //Install Laravel
         $this->installLaravel($input, $output);
 
-
-
-
         // Install Laradock
         if ($input->getOption('laradock')) {
             $this->installLaradock($input, $output);
@@ -195,55 +181,39 @@ class NewCommand extends Command
 
 
 
-        if (PHP_OS_FAMILY != 'Windows') {
-            $commands[] = "chmod 755 \"$directory/artisan\"";
-        }
+        // if (PHP_OS_FAMILY != 'Windows') {
+        //     $commands[] = "chmod 755 \"$this->directory/artisan\"";
+        // }
 
-        if (($process = $this->runCommands($commands, $input, $output))->isSuccessful()) {
-            if ($name !== '.') {
-                $this->replaceInFile(
-                    'APP_URL=http://localhost',
-                    'APP_URL=' . $this->generateAppUrl($name),
-                    $directory . '/.env'
-                );
+        // $commands = [];
+        // $name = $input->getArgument('name');
+        // $directory = $this->directory;
+        // if (($process = $this->runCommands($commands, $input, $output))->isSuccessful()) {
+        //     if ($name !== '.') {
+        //         $this->replaceInFile(
+        //             'APP_URL=http://localhost',
+        //             'APP_URL=' . $this->generateAppUrl($name),
+        //             $directory . '/.env'
+        //         );
 
-                [$database, $migrate] = $this->promptForDatabaseOptions($directory, $input);
-
-
-                $this->configureDefaultDatabaseConnection($directory, $database, $name, $migrate);
-
-                // prompt for composer packages
-                // $this->configureComposerPackages($input, $output);
+        //         [$database, $migrate] = $this->promptForDatabaseOptions($directory, $input);
 
 
-                if ($migrate) {
-                    $this->runCommands([
-                        $this->phpBinary() . ' artisan migrate',
-                    ], $input, $output, workingPath: $directory);
-                }
-            }
+        //         $this->configureDefaultDatabaseConnection($directory, $database, $name, $migrate);
 
-            // if ($input->getOption('git') || $input->getOption('github') !== false) {
-            //   $this->createRepository($directory, $input, $output);
-            // }
+        //         // prompt for composer packages
+        //         // $this->configureComposerPackages($input, $output);
 
 
+        //         if ($migrate) {
+        //             $this->runCommands([
+        //                 $this->phpBinary() . ' artisan migrate',
+        //             ], $input, $output, workingPath: $directory);
+        //         }
+        //     }
+        // }
 
-            // if ($input->getOption('github') !== false) {
-            //   $this->pushToGitHub($name, $directory, $input, $output);
-            //   $output->writeln('');
-            // }
-
-            $output->writeln("  <bg=blue;fg=white> INFO </> Application ready in <options=bold>[{$name}]</>. You can start your local development using:" . PHP_EOL);
-
-            $output->writeln('<fg=gray>➜</> <options=bold>cd ' . $name . '</>');
-            $output->writeln('<fg=gray>➜</> <options=bold>php artisan serve</>');
-            $output->writeln('');
-
-            $output->writeln('');
-        }
-
-        return $process->getExitCode();
+        return 0;
     }
 
 
@@ -252,12 +222,13 @@ class NewCommand extends Command
         $name = $input->getArgument('name');
         $this->directory = $directory = ($name === '.') ? getcwd() : getcwd() . '/' . $name;
 
+        $commands = [];
 
         if ($this->directory != '.' && $input->getOption('force')) {
             if (PHP_OS_FAMILY == 'Windows') {
-                array_unshift($commands, "(if exist \"$directory\" rd /s /q \"$directory\")");
+                array_unshift($commands, "(if exist $this->directory rd /s /q \"$this->directory\")");
             } else {
-                array_unshift($commands, "rm -rf \"$directory\"");
+                array_unshift($commands, "rm -rf $this->directory");
             }
         }
 
@@ -310,7 +281,8 @@ class NewCommand extends Command
             'cd ..'
         ]);
 
-        $this->runCommands($commands, $input, $output);
+        $process = $this->runCommands($commands, $input, $output)->isSuccessful();
+        $output->writeln('  <bg=green;fg=black> Laradock installed! </> ' . PHP_EOL);
     }
 
 
