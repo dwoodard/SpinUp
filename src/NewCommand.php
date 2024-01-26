@@ -29,6 +29,21 @@ class NewCommand extends Command
    * @var \Illuminate\Support\Composer
    */
   protected $composer;
+  private $allPackages;
+
+  public function __construct()
+  {
+    parent::__construct();
+
+    $this->allPackages = collect([
+      // Friendly name (Pascel) => composer package with args
+      'LaravelBreeze' => ['laravel/breeze', 'prefer-dist'],
+      'LaravelPWA' => ['silviolleite/laravelpwa', 'prefer-dist'],
+      'LaravelSchemalessAttributes' => ['spatie/laravel-schemaless-attributes'],
+      'LaravelPermission' => ['spatie/laravel-permission'],
+      'LaravelMedialibrary' => ['spatie/laravel-medialibrary'],
+    ]);
+  }
 
   /**
    * Configure the command options.
@@ -42,19 +57,20 @@ class NewCommand extends Command
       ->setDescription('Create a new Laravel application')
       ->addArgument('name', InputArgument::REQUIRED)
       ->addOption('pest', null, InputOption::VALUE_NONE, 'Installs the Pest testing framework')
-      ->addOption('phpunit', null, InputOption::VALUE_NONE, 'Installs the PHPUnit testing framework')
       ->addOption('force', 'f', InputOption::VALUE_NONE, 'Forces install even if the directory already exists')
       // Add custom options below...
 
       //add laradock
-      ->addOption('laradock', null, InputOption::VALUE_NONE, 'Installs the Laradock scaffolding (in project)', true)
+      ->addOption('laradock', null, InputOption::VALUE_NONE, 'Installs the Laradock scaffolding (in project)')
 
       //composer packages to add
-      ->addOption('laravelpwa', null, InputOption::VALUE_NONE, 'Installs the PWA scaffolding (https://github.com/silviolleite/laravel-pwa)')
-      ->addOption('laravel-schemaless-attributes', null, InputOption::VALUE_NONE, 'Installs the spatie/laravel-schemaless-attributes scaffolding (https://github.com/spatie/laravel-schemaless-attributes)')
-      ->addOption('laravel-permission', null, InputOption::VALUE_NONE, 'Installs the spatie/laravel-permission scaffolding (https://github.com/spatie/laravel-permission)')
-      ->addOption('laravel-medialibrary', null, InputOption::VALUE_NONE, 'Installs the spatie/laravel-medialibrary scaffolding (https://github.com/spatie/laravel-medialibrary)');
+      ->addOption('all', null, InputOption::VALUE_NONE, 'Installs all the Composer packages');
   }
+
+
+
+
+
 
   /**
    * Interact with the user before validating the input.
@@ -69,17 +85,26 @@ class NewCommand extends Command
 
     $this->configurePrompts($input, $output);
 
-    $output->write(PHP_EOL . '  <fg=green>
+    $output->write(
+      //SpinUp logo
+      PHP_EOL . '  <fg=green>
+    ┏┓  •  ┳┳  
+    ┗┓┏┓┓┏┓┃┃┏┓
+    ┗┛┣┛┗┛┗┗┛┣┛   
+      ┛      ┛</>
+'
+        // show name of the project if passed as an argument
+        . ($input->getArgument('name') ? ' - Name: <options=bold>' . $input->getArgument('name') . '</>' . PHP_EOL : '')
+        . ' - Project directory: <options=bold>' . getcwd() . '/' . $input->getArgument('name') . '</>' . PHP_EOL
+        . ($input->getOption('laradock') ? ' - Laradock: <options=bold>Yes</>' . PHP_EOL : '')
+        // all
+        . ($input->getOption('all') ? ' - All Packages: <options=bold>Yes</>' . PHP_EOL : '')
 
-    ███╗   ███╗██╗   ██╗    ██╗      █████╗ ██████╗  █████╗ ██╗   ██╗███████╗██╗     
-    ████╗ ████║╚██╗ ██╔╝    ██║     ██╔══██╗██╔══██╗██╔══██╗██║   ██║██╔════╝██║     
-    ██╔████╔██║ ╚████╔╝     ██║     ███████║██████╔╝███████║██║   ██║█████╗  ██║     
-    ██║╚██╔╝██║  ╚██╔╝      ██║     ██╔══██║██╔══██╗██╔══██║╚██╗ ██╔╝██╔══╝  ██║     
-    ██║ ╚═╝ ██║   ██║       ███████╗██║  ██║██║  ██║██║  ██║ ╚████╔╝ ███████╗███████╗
-    ╚═╝     ╚═╝   ╚═╝       ╚══════╝╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═╝  ╚═══╝  ╚══════╝╚══════╝
-                                                                                     
-                </>' . PHP_EOL . PHP_EOL);
 
+
+    );
+
+    // Set the default name if it is not passed as an argument... 
     if (!$input->getArgument('name')) {
       $input->setArgument('name', text(
         label: 'What is the name of your project?',
@@ -91,33 +116,8 @@ class NewCommand extends Command
       ));
     }
 
-
-    if (!$input->getOption('breeze') && !$input->getOption('jet')) {
-
-
-      match (select(
-        label: 'Would you like to install a starter kit?',
-        options: [
-          'none' => 'No starter kit',
-          'breeze' => 'Laravel Breeze',
-          'jetstream' => 'Laravel Jetstream',
-        ],
-        default: 'none',
-      )) {
-        'breeze' => $input->setOption('breeze', true),
-        'jetstream' => $input->setOption('jet', true),
-        default => null,
-      };
-    }
-
-    if ($input->getOption('breeze')) {
-      $this->promptForBreezeOptions($input);
-    } elseif ($input->getOption('jet')) {
-      $this->promptForJetstreamOptions($input);
-    }
-
-    // laraDock
-    if ($input->getOption('laradock')) {
+    // Install Laradock
+    if (!$input->getOption('laradock')) {
       $input->setOption('laradock', confirm(
         label: 'Would you like to install Laradock?',
         default: false,
@@ -125,43 +125,48 @@ class NewCommand extends Command
     }
 
 
-    // Add Composer packages
-    if (
-      !$input->getOption('laravelpwa') &&
-      !$input->getOption('laravel-schemaless-attributes') &&
-      !$input->getOption('laravel-permission') &&
-      !$input->getOption('laravel-medialibrary')
-    ) {
-      collect(multiselect(
-        label: 'Would you like any of these Composer packages?',
-        options: [
-          'laravelpwa' => 'Laravel PWA',
-          'laravel-schemaless-attributes' => 'laravel-schemaless-attributes',
-          'laravel-permission' => 'laravel-permission',
-          'laravel-medialibrary' => 'laravel-medialibrary',
-        ],
-        default: array_filter([
-          $input->getOption('laravelpwa') ? 'laravelpwa' : null,
-          $input->getOption('laravel-schemaless-attributes') ? 'laravel-schemaless-attributes' : null,
-          $input->getOption('laravel-permission') ? 'laravel-permission' : null,
-          $input->getOption('laravel-medialibrary') ? 'laravel-medialibrary' : null,
-        ]),
-      ))->each(fn ($option) => $input->setOption($option, true));
-    }
+    /* 
+      if all is selected, then set all the options to true
+      else, prompt for each option
+
+    */
 
 
-    if (!$input->getOption('phpunit') && !$input->getOption('pest')) {
-      $input->setOption('pest', select(
-        label: 'Which testing framework do you prefer?',
-        options: ['PHPUnit', 'Pest'],
-        default: 'PHPUnit',
-      ) === 'Pest');
-    }
+    if ($input->getOption('all')) {
+      $this->allPackages->each(function ($value, $key) use ($input) {
+        $input->setOption($key, true);
+      });
+    } else {
 
-    if (!$input->getOption('git') && $input->getOption('github') === false && Process::fromShellCommandline('git --version')->run() === 0) {
-      $input->setOption('git', confirm(label: 'Would you like to initialize a Git repository?', default: false));
+
+      // if (
+      //   collect($this->allPackages->keys()->all())
+      //   ->filter(fn ($package) => !$input->getOption($package))
+      //   ->count() > 0
+      // ) {
+      //   $output->writeln('');
+      // }
+
+
+      // if (
+      //   !$input->getOption('laravelpwa') &&
+      //   !$input->getOption('laravel-schemaless-attributes') &&
+      //   !$input->getOption('laravel-permission') &&
+      //   !$input->getOption('laravel-medialibrary')
+      // ) {
+      //   collect(multiselect(
+      //     label: 'Would you like any of these Composer packages?',
+      //     options: $this->allPackages->map(fn ($package) => $package[0])->all(),
+      //     default: $this->allPackages->map(fn ($package) => $package[0])->all(),
+      //   ))->each(fn ($option) => $input->setOption($option, true));
+      // }
     }
   }
+
+
+
+
+
 
   /**
    * Execute the command.
@@ -172,15 +177,12 @@ class NewCommand extends Command
    */
   protected function execute(InputInterface $input, OutputInterface $output): int
   {
-    $this->validateStackOption($input);
-
+    // $this->validateStackOption($input);
     $name = $input->getArgument('name');
-
     $directory = $name !== '.' ? getcwd() . '/' . $name : '.';
-
+    $output->writeln($directory);
     $this->composer = new Composer(new Filesystem(), $directory);
-
-    $version = $this->getVersion($input);
+    // $version = $this->getVersion($input);
 
     if (!$input->getOption('force')) {
       $this->verifyApplicationDoesntExist($directory);
@@ -189,9 +191,7 @@ class NewCommand extends Command
     if ($input->getOption('force') && $directory === '.') {
       throw new RuntimeException('Cannot use --force option when using current directory for installation!');
     }
-
     $composer = $this->findComposer();
-
     $commands = [
       $composer . " create-project laravel/laravel \"$directory\" $version --remove-vcs --prefer-dist",
     ];
@@ -222,7 +222,7 @@ class NewCommand extends Command
         $this->configureDefaultDatabaseConnection($directory, $database, $name, $migrate);
 
         // prompt for composer packages
-        $this->configureComposerPackages($input, $output);
+        // $this->configureComposerPackages($input, $output);
 
 
         if ($migrate) {
@@ -234,14 +234,6 @@ class NewCommand extends Command
 
       if ($input->getOption('git') || $input->getOption('github') !== false) {
         $this->createRepository($directory, $input, $output);
-      }
-
-      if ($input->getOption('breeze')) {
-        $this->installBreeze($directory, $input, $output);
-      } elseif ($input->getOption('jet')) {
-        $this->installJetstream($directory, $input, $output);
-      } elseif ($input->getOption('pest')) {
-        $this->installPest($directory, $input, $output);
       }
 
       if ($input->getOption('laradock')) {
@@ -457,34 +449,7 @@ class NewCommand extends Command
     $this->commitChanges('Install Breeze', $directory, $input, $output);
   }
 
-  /**
-   * Install Laravel Jetstream into the application.
-   *
-   * @param  string  $directory
-   * @param  \Symfony\Component\Console\Input\InputInterface  $input
-   * @param  \Symfony\Component\Console\Output\OutputInterface  $output
-   * @return void
-   */
-  protected function installJetstream(string $directory, InputInterface $input, OutputInterface $output)
-  {
-    $commands = array_filter([
-      $this->findComposer() . ' require laravel/jetstream',
-      trim(sprintf(
-        $this->phpBinary() . ' artisan jetstream:install %s %s %s %s %s %s %s',
-        $input->getOption('stack'),
-        $input->getOption('api') ? '--api' : '',
-        $input->getOption('dark') ? '--dark' : '',
-        $input->getOption('teams') ? '--teams' : '',
-        $input->getOption('pest') ? '--pest' : '',
-        $input->getOption('verification') ? '--verification' : '',
-        $input->getOption('ssr') ? '--ssr' : '',
-      )),
-    ]);
 
-    $this->runCommands($commands, $input, $output, workingPath: $directory);
-
-    $this->commitChanges('Install Jetstream', $directory, $input, $output);
-  }
 
   /**
    * Determine the default database connection.
@@ -697,9 +662,6 @@ class NewCommand extends Command
 
     if ($input->getOption('laravelpwa')) {
       $this->requireComposerPackages(['silviolleite/laravelpwa'], $output, true);
-
-
-
 
       $commands = array_filter([
         $this->phpBinary() . ' artisan vendor:publish --provider="LaravelPWA\Providers\LaravelPWAServiceProvider"',
