@@ -279,7 +279,7 @@ class NewCommand extends Command
 
         $this->copyFile(
             $stubRoot . '/deploy.sh',
-            $this->directory . '/deploy.sh',
+            $this->directory . '/deploy.sh'
         );
 
         // replace last output line with a green checkmark
