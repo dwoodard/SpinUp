@@ -58,13 +58,17 @@ class NewCommand extends Command
       ->addArgument('name', InputArgument::REQUIRED)
       ->addOption('pest', null, InputOption::VALUE_NONE, 'Installs the Pest testing framework')
       ->addOption('force', 'f', InputOption::VALUE_NONE, 'Forces install even if the directory already exists')
-      // Add custom options below...
 
       //add laradock
       ->addOption('laradock', null, InputOption::VALUE_NONE, 'Installs the Laradock scaffolding (in project)')
 
       //composer packages to add
       ->addOption('all', null, InputOption::VALUE_NONE, 'Installs all the Composer packages');
+
+    // // loop through allPackages and add an option for each one
+    // $this->allPackages->each(function ($value, $key) {
+    //   $this->addOption($key, null, InputOption::VALUE_NONE, 'Installs the ' . $key . ' package');
+    // });
   }
 
 
@@ -87,14 +91,16 @@ class NewCommand extends Command
 
     $output->write(
       //SpinUp logo
-      PHP_EOL . '  <fg=green>
-    ┏┓  •  ┳┳  
-    ┗┓┏┓┓┏┓┃┃┏┓
-    ┗┛┣┛┗┛┗┗┛┣┛   
-      ┛      ┛</>
+      PHP_EOL .
+        '  <fg=green>
+  ┏┓  •  ┳┳  
+  ┗┓┏┓┓┏┓┃┃┏┓
+  ┗┛┣┛┗┛┗┗┛┣┛   
+    ┛      ┛</>
 '
         // show name of the project if passed as an argument
         . ($input->getArgument('name') ? ' - Name: <options=bold>' . $input->getArgument('name') . '</>' . PHP_EOL : '')
+
         . ' - Project directory: <options=bold>' . getcwd() . '/' . $input->getArgument('name') . '</>' . PHP_EOL
         . ($input->getOption('laradock') ? ' - Laradock: <options=bold>Yes</>' . PHP_EOL : '')
         // all
@@ -133,33 +139,18 @@ class NewCommand extends Command
 
 
     if ($input->getOption('all')) {
-      $this->allPackages->each(function ($value, $key) use ($input) {
-        $input->setOption($key, true);
+      $this->allPackages->each(function ($value, $key) use ($input, $output) {
+        $output->writeln($key);
       });
     } else {
-
-
-      // if (
-      //   collect($this->allPackages->keys()->all())
-      //   ->filter(fn ($package) => !$input->getOption($package))
-      //   ->count() > 0
-      // ) {
-      //   $output->writeln('');
-      // }
-
-
-      // if (
-      //   !$input->getOption('laravelpwa') &&
-      //   !$input->getOption('laravel-schemaless-attributes') &&
-      //   !$input->getOption('laravel-permission') &&
-      //   !$input->getOption('laravel-medialibrary')
-      // ) {
-      //   collect(multiselect(
-      //     label: 'Would you like any of these Composer packages?',
-      //     options: $this->allPackages->map(fn ($package) => $package[0])->all(),
-      //     default: $this->allPackages->map(fn ($package) => $package[0])->all(),
-      //   ))->each(fn ($option) => $input->setOption($option, true));
-      // }
+      $this->allPackages->each(function ($value, $key) use ($input) {
+        if (!$input->getOption($key)) {
+          $input->setOption($key, confirm(
+            label: 'Would you like to install ' . $key . '?',
+            default: false,
+          ));
+        }
+      });
     }
   }
 
@@ -177,6 +168,11 @@ class NewCommand extends Command
    */
   protected function execute(InputInterface $input, OutputInterface $output): int
   {
+
+    // $output in Yellow Excuting... filename with line number
+    $output->writeln('  <bg=yellow;fg=black> Excuting... </>' . PHP_EOL);
+    $output->writeln('  <fg=yellow;options=bold>File:</> ' . __FILE__  . ":" . __LINE__ . PHP_EOL);
+
     // $this->validateStackOption($input);
     $name = $input->getArgument('name');
     $directory = $name !== '.' ? getcwd() . '/' . $name : '.';
@@ -193,7 +189,8 @@ class NewCommand extends Command
     }
     $composer = $this->findComposer();
     $commands = [
-      $composer . " create-project laravel/laravel \"$directory\" $version --remove-vcs --prefer-dist",
+      // $composer . " create-project laravel/laravel \"$directory\" $version --remove-vcs --prefer-dist",
+      $composer . " create-project laravel/laravel \"$directory\" $version --remove-vcs --prefer-dist --quiet",
     ];
 
     if ($directory != '.' && $input->getOption('force')) {
@@ -232,18 +229,18 @@ class NewCommand extends Command
         }
       }
 
-      if ($input->getOption('git') || $input->getOption('github') !== false) {
-        $this->createRepository($directory, $input, $output);
-      }
+      // if ($input->getOption('git') || $input->getOption('github') !== false) {
+      //   $this->createRepository($directory, $input, $output);
+      // }
 
       if ($input->getOption('laradock')) {
         $this->installLaradock($directory, $input, $output);
       }
 
-      if ($input->getOption('github') !== false) {
-        $this->pushToGitHub($name, $directory, $input, $output);
-        $output->writeln('');
-      }
+      // if ($input->getOption('github') !== false) {
+      //   $this->pushToGitHub($name, $directory, $input, $output);
+      //   $output->writeln('');
+      // }
 
       $output->writeln("  <bg=blue;fg=white> INFO </> Application ready in <options=bold>[{$name}]</>. You can start your local development using:" . PHP_EOL);
 
@@ -484,118 +481,13 @@ class NewCommand extends Command
     return [$database ?? $defaultDatabase, $migrate ?? false];
   }
 
-  /**
-   * Determine the stack for Breeze.
-   *
-   * @param  \Symfony\Component\Console\Input\InputInterface  $input
-   * @return void
-   */
-  protected function promptForBreezeOptions(InputInterface $input)
-  {
-    if (!$input->getOption('stack')) {
-      $input->setOption('stack', select(
-        label: 'Which Breeze stack would you like to install?',
-        options: [
-          'blade' => 'Blade with Alpine',
-          'livewire' => 'Livewire (Volt Class API) with Alpine',
-          'livewire-functional' => 'Livewire (Volt Functional API) with Alpine',
-          'react' => 'React with Inertia',
-          'vue' => 'Vue with Inertia',
-          'api' => 'API only',
-        ],
-        default: 'blade',
-      ));
-    }
 
-    if (in_array($input->getOption('stack'), ['react', 'vue']) && (!$input->getOption('dark') || !$input->getOption('ssr'))) {
-      collect(multiselect(
-        label: 'Would you like any optional features?',
-        options: [
-          'dark' => 'Dark mode',
-          'ssr' => 'Inertia SSR',
-          'typescript' => 'TypeScript (experimental)',
-        ],
-        default: array_filter([
-          $input->getOption('dark') ? 'dark' : null,
-          $input->getOption('ssr') ? 'ssr' : null,
-          $input->getOption('typescript') ? 'typescript' : null,
-        ]),
-      ))->each(fn ($option) => $input->setOption($option, true));
-    } elseif (in_array($input->getOption('stack'), ['blade', 'livewire', 'livewire-functional']) && !$input->getOption('dark')) {
-      $input->setOption('dark', confirm(
-        label: 'Would you like dark mode support?',
-        default: false,
-      ));
-    }
-  }
 
-  /**
-   * Determine the stack for Jetstream.
-   *
-   * @param  \Symfony\Component\Console\Input\InputInterface  $input
-   * @return void
-   */
-  protected function promptForJetstreamOptions(InputInterface $input)
-  {
-    if (!$input->getOption('stack')) {
-      $input->setOption('stack', select(
-        label: 'Which Jetstream stack would you like to install?',
-        options: [
-          'livewire' => 'Livewire',
-          'inertia' => 'Vue with Inertia',
-        ],
-        default: 'livewire',
-      ));
-    }
 
-    collect(multiselect(
-      label: 'Would you like any optional features?',
-      options: collect([
-        'api' => 'API support',
-        'dark' => 'Dark mode',
-        'verification' => 'Email verification',
-        'teams' => 'Team support',
-      ])->when(
-        $input->getOption('stack') === 'inertia',
-        fn ($options) => $options->put('ssr', 'Inertia SSR')
-      )->all(),
-      default: array_filter([
-        $input->getOption('api') ? 'api' : null,
-        $input->getOption('dark') ? 'dark' : null,
-        $input->getOption('teams') ? 'teams' : null,
-        $input->getOption('verification') ? 'verification' : null,
-        $input->getOption('stack') === 'inertia' && $input->getOption('ssr') ? 'ssr' : null,
-      ]),
-    ))->each(fn ($option) => $input->setOption($option, true));
-  }
 
-  /**
-   * Prompt for Laradock
-   */
 
-  /**
-   * Validate the starter kit stack input.
-   *
-   * @param  \Symfony\Components\Console\Input\InputInterface
-   */
-  protected function validateStackOption(InputInterface $input)
-  {
-    if ($input->getOption('breeze')) {
-      if (!in_array($input->getOption('stack'), $stacks = ['blade', 'livewire', 'livewire-functional', 'react', 'vue', 'api'])) {
-        throw new \InvalidArgumentException("Invalid Breeze stack [{$input->getOption('stack')}]. Valid options are: " . implode(', ', $stacks) . '.');
-      }
 
-      return;
-    }
 
-    if ($input->getOption('jet')) {
-      if (!in_array($input->getOption('stack'), $stacks = ['inertia', 'livewire'])) {
-        throw new \InvalidArgumentException("Invalid Jetstream stack [{$input->getOption('stack')}]. Valid options are: " . implode(', ', $stacks) . '.');
-      }
-
-      return;
-    }
-  }
 
   /**
    * Install Pest into the application.
