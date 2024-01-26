@@ -59,7 +59,23 @@ class NewCommand extends Command
       ->addOption('phpunit', null, InputOption::VALUE_NONE, 'Installs the PHPUnit testing framework')
       ->addOption('prompt-breeze', null, InputOption::VALUE_NONE, 'Issues a prompt to determine if Breeze should be installed (Deprecated)')
       ->addOption('prompt-jetstream', null, InputOption::VALUE_NONE, 'Issues a prompt to determine if Jetstream should be installed (Deprecated)')
-      ->addOption('force', 'f', InputOption::VALUE_NONE, 'Forces install even if the directory already exists');
+      ->addOption('force', 'f', InputOption::VALUE_NONE, 'Forces install even if the directory already exists')
+      // Add custom options below...
+
+      //add laradock
+      ->addOption('laradock', null, InputOption::VALUE_NONE, 'Installs the Laradock scaffolding (in project)')
+
+      //composer packages to add
+      // pwa
+      ->addOption('laravelpwa', null, InputOption::VALUE_NONE, 'Installs the PWA scaffolding (https://github.com/silviolleite/laravel-pwa)')
+      //spatie/laravel-schemaless-attributes
+      ->addOption('laravel-schemaless-attributes', null, InputOption::VALUE_NONE, 'Installs the spatie/laravel-schemaless-attributes scaffolding (https://github.com/spatie/laravel-schemaless-attributes)')
+      //spatie/laravel-permission
+      ->addOption('laravel-permission', null, InputOption::VALUE_NONE, 'Installs the spatie/laravel-permission scaffolding (https://github.com/spatie/laravel-permission)')
+      //spatie/laravel-medialibrary
+      ->addOption('laravel-medialibrary', null, InputOption::VALUE_NONE, 'Installs the spatie/laravel-medialibrary scaffolding (https://github.com/spatie/laravel-medialibrary)')
+      //spatie/laravel-tags
+    ;
   }
 
   /**
@@ -97,7 +113,10 @@ class NewCommand extends Command
       ));
     }
 
+
     if (!$input->getOption('breeze') && !$input->getOption('jet')) {
+
+
       match (select(
         label: 'Would you like to install a starter kit?',
         options: [
@@ -118,6 +137,40 @@ class NewCommand extends Command
     } elseif ($input->getOption('jet')) {
       $this->promptForJetstreamOptions($input);
     }
+
+    // laraDock
+    if ($input->getOption('laradock')) {
+      $input->setOption('laradock', confirm(
+        label: 'Would you like to install Laradock?',
+        default: false,
+      ));
+    }
+
+
+    // Add Composer packages
+    if (
+      !$input->getOption('laravelpwa') &&
+      !$input->getOption('laravel-schemaless-attributes') &&
+      !$input->getOption('laravel-permission') &&
+      !$input->getOption('laravel-medialibrary')
+    ) {
+      collect(multiselect(
+        label: 'Would you like any of these Composer packages?',
+        options: [
+          'laravelpwa' => 'Laravel PWA',
+          'laravel-schemaless-attributes' => 'laravel-schemaless-attributes',
+          'laravel-permission' => 'laravel-permission',
+          'laravel-medialibrary' => 'laravel-medialibrary',
+        ],
+        default: array_filter([
+          $input->getOption('laravelpwa') ? 'laravelpwa' : null,
+          $input->getOption('laravel-schemaless-attributes') ? 'laravel-schemaless-attributes' : null,
+          $input->getOption('laravel-permission') ? 'laravel-permission' : null,
+          $input->getOption('laravel-medialibrary') ? 'laravel-medialibrary' : null,
+        ]),
+      ))->each(fn ($option) => $input->setOption($option, true));
+    }
+
 
     if (!$input->getOption('phpunit') && !$input->getOption('pest')) {
       $input->setOption('pest', select(
@@ -187,7 +240,12 @@ class NewCommand extends Command
 
         [$database, $migrate] = $this->promptForDatabaseOptions($directory, $input);
 
+
         $this->configureDefaultDatabaseConnection($directory, $database, $name, $migrate);
+
+        // prompt for composer packages
+        $this->configureComposerPackages($input, $output);
+
 
         if ($migrate) {
           $this->runCommands([
@@ -208,6 +266,10 @@ class NewCommand extends Command
         $this->installPest($directory, $input, $output);
       }
 
+      if ($input->getOption('laradock')) {
+        $this->installLaradock($directory, $input, $output);
+      }
+
       if ($input->getOption('github') !== false) {
         $this->pushToGitHub($name, $directory, $input, $output);
         $output->writeln('');
@@ -219,7 +281,6 @@ class NewCommand extends Command
       $output->writeln('<fg=gray>➜</> <options=bold>php artisan serve</>');
       $output->writeln('');
 
-      $output->writeln('  New to Laravel? Check out our <href=https://bootcamp.laravel.com>bootcamp</> and <href=https://laravel.com/docs/installation#next-steps>documentation</>. <options=bold>Build something amazing!</>');
       $output->writeln('');
     }
 
@@ -566,6 +627,10 @@ class NewCommand extends Command
   }
 
   /**
+   * Prompt for Laradock
+   */
+
+  /**
    * Validate the starter kit stack input.
    *
    * @param  \Symfony\Components\Console\Input\InputInterface
@@ -623,6 +688,67 @@ class NewCommand extends Command
       $this->commitChanges('Install Pest', $directory, $input, $output);
     }
   }
+
+  protected function installLaradock(string $directory, InputInterface $input, OutputInterface $output)
+  {
+    // install laradock
+
+
+    $commands = array_filter([
+      'git clone https://github.com/Laradock/laradock.git laradock',
+      'mkdir data',
+      'cd laradock',
+      'pwd',
+      'cp .env.example .env',
+      'sed -i \'\' \'s+DATA_PATH_HOST=~/.laradock/data+DATA_PATH_HOST=../data+g\' .env',
+      'sed -i \'\' \'s:DB_HOST=127.0.0.1:DB_HOST=mysql:g\' .env',
+      'sed -i \'\' \'s:REDIS_HOST=127.0.0.1:REDIS_HOST=redis:g\' .env',
+      'sed -i \'\' \'s:DB_PASSWORD=.*:DB_PASSWORD=root:g\' .env',
+      'echo \'QUEUE_HOST=beanstalkd\' >> .env',
+      'cd ..'
+    ]);
+  }
+
+
+  /**
+   * Select Composer packages to install.
+   * 
+   */
+  protected function configureComposerPackages(InputInterface $input, OutputInterface $output)
+  {
+
+    if ($input->getOption('laravelpwa')) {
+      $this->requireComposerPackages(['silviolleite/laravelpwa'], $output, true);
+
+
+
+
+      $commands = array_filter([
+        $this->phpBinary() . ' artisan vendor:publish --provider="LaravelPWA\Providers\LaravelPWAServiceProvider"',
+        /* 
+          I need to find the default html file and add @laravelPWA to it
+          zsh: no such file or directory: head
+        */
+        exec('find . -name "app.blade.php" -exec sed -i \'\' \'s+<head>+<head>@laravelPWA+g\' {} \;')
+      ]);
+
+      $this->runCommands($commands, $input, $output);
+    }
+
+    if ($input->getOption('laravel-schemaless-attributes')) {
+      $this->requireComposerPackages(['spatie/laravel-schemaless-attributes'], $output, true);
+    }
+
+    if ($input->getOption('laravel-permission')) {
+      $this->requireComposerPackages(['spatie/laravel-permission'], $output, true);
+    }
+
+    if ($input->getOption('laravel-medialibrary')) {
+      $this->requireComposerPackages(['spatie/laravel-medialibrary'], $output, true);
+    }
+  }
+
+
 
   /**
    * Create a Git repository and commit the base Laravel skeleton.
