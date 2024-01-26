@@ -69,15 +69,25 @@ class NewCommand extends Command
             ->addOption('dev', null, InputOption::VALUE_NONE, 'Installs the latest "development" release')
             ->addOption('laravel-quiet', null, InputOption::VALUE_OPTIONAL, 'Dont show any Laravel Install', true)
             ->addOption('laradock-quiet', null, InputOption::VALUE_OPTIONAL, 'Dont show any Laradock Install', true)
-            // stack
-            ->addOption('stack', null, InputOption::VALUE_OPTIONAL, 'The stack that should be installed', 'livewire')
-            // laradock-quiet
 
             //add laradock
             ->addOption('laradock', null, InputOption::VALUE_NONE, 'Installs the Laradock scaffolding (in project)')
 
+            // Breeze
+            ->addOption('stack', null, InputOption::VALUE_OPTIONAL, 'The stack that should be installed', 'livewire')
+            ->addOption('dark', null, InputOption::VALUE_NONE, 'Installs the dark theme for Breeze')
+            ->addOption('ssr', null, InputOption::VALUE_NONE, 'Installs the SSR theme for Breeze')
+
+
+
             //composer packages to add
             ->addOption('all', null, InputOption::VALUE_NONE, 'Installs all the Composer packages')
+
+            // composer packages
+            ->addOption('laravelpwa', null, InputOption::VALUE_NONE, 'Installs the Laravel PWA scaffolding (in project)')
+            ->addOption('laravel-schemaless-attributes', null, InputOption::VALUE_NONE, 'Installs the Laravel Schemaless Attributes scaffolding (in project)')
+            ->addOption('laravel-permission', null, InputOption::VALUE_NONE, 'Installs the Laravel Permission scaffolding (in project)')
+            ->addOption('laravel-medialibrary', null, InputOption::VALUE_NONE, 'Installs the Laravel Medialibrary scaffolding (in project)')
             //;
         ;
 
@@ -118,6 +128,7 @@ class NewCommand extends Command
                 . ($input->getOption('laradock') ? ' - Laradock: <options=bold>Yes</>' . PHP_EOL : '')
                 . ($input->getOption('pest') ? ' - Pest: <options=bold>Yes</>' . PHP_EOL : '')
                 . ($input->getOption('force') ? ' - Force Delete Project: <options=bold>Yes</>' . PHP_EOL : '')
+                . PHP_EOL
                 . PHP_EOL
         );
 
@@ -161,6 +172,9 @@ class NewCommand extends Command
         // Install Laradock
         $this->installLaradock($input, $output);
 
+        // Install Deploy Script
+        $this->installDeployScript($input, $output);
+
         // Install Breeze
         $this->installBreeze($input, $output, $this->directory);
 
@@ -168,7 +182,6 @@ class NewCommand extends Command
         // runCheckIfForceOptionIsPassed($input, $output);
 
         // runInstallComposerPackages($input, $output);
-        // runInstallBreeze($input, $output);
 
 
         // $output->writeln($directory);
@@ -218,6 +231,7 @@ class NewCommand extends Command
 
     protected function handleIfExsistingProject(InputInterface $input, OutputInterface $output)
     {
+        $output->writeln('  <bg=blue;fg=black> handleIfExsistingProject... </> '  . '<fg=blue>' . __FILE__ . ':' . __LINE__ . '</>' . PHP_EOL, OutputInterface::VERBOSITY_VERBOSE);
 
         //  -f, --force
         // if -f is passed, delete the project if it exists
@@ -237,6 +251,8 @@ class NewCommand extends Command
     // installLaravel
     protected function installLaravel(InputInterface $input, OutputInterface $output)
     {
+        $output->writeln('  <bg=blue;fg=black> installLaravel... </> '  . '<fg=blue>' . __FILE__ . ':' . __LINE__ . '</>' . PHP_EOL, OutputInterface::VERBOSITY_VERBOSE);
+
         $version = $this->getVersion($input);
         $quite = $input->getOption('laravel-quiet') ? '--quiet' : '';
 
@@ -252,9 +268,29 @@ class NewCommand extends Command
         $this->timeLineOutput(true, $output, 'Installing Laravel...',  "✅ done");
     }
 
+    //installDeployScript
+    protected function installDeployScript(InputInterface $input, OutputInterface $output)
+    {
+        $output->writeln('  <bg=blue;fg=black> installDeployScript... </> '  . '<fg=blue>' . __FILE__ . ':' . __LINE__ . '</>' . PHP_EOL, OutputInterface::VERBOSITY_VERBOSE);
+
+        $this->timeLineOutput(false, $output, 'Installing Deploy Script...');
+
+        $stubRoot = dirname(__DIR__) . '/stubs' . '/root';
+
+        $this->copyFile(
+            $stubRoot . '/deploy.sh',
+            $this->directory . '/deploy.sh',
+        );
+
+        // replace last output line with a green checkmark
+        $this->timeLineOutput(true, $output, 'Installing Deploy Script...',  "✅ done");
+    }
+
     /* Setup Functions */
     protected function installLaradock(InputInterface $input, OutputInterface $output)
     {
+        $output->writeln('  <bg=blue;fg=black> installLaradock... </> '  . '<fg=blue>' . __FILE__ . ':' . __LINE__ . '</>' . PHP_EOL, OutputInterface::VERBOSITY_VERBOSE);
+
         $this->timeLineOutput(false, $output, 'Installing Laradock...');
 
         $input->setOption('laradock', $input->getOption('laradock') || confirm(
@@ -298,6 +334,7 @@ class NewCommand extends Command
 
         ]);
 
+
         $process = $this->runCommands(
             $laradockCommands,
             $input,
@@ -314,8 +351,6 @@ class NewCommand extends Command
             // move cursor up and erase line
             $output->write("\033[1A"); // Move up
             $output->write("\033[K"); // Erase line
-            // Move down
-            $output->write("\033[1B");
         }
 
         $output->writeln("<bg=green;fg=black> $message </> $status");
@@ -503,6 +538,7 @@ class NewCommand extends Command
      */
     protected function installBreeze(InputInterface $input, OutputInterface $output, string $directory)
     {
+        $output->writeln('  <bg=blue;fg=black> installBreeze... </> '  . '<fg=blue>' . __FILE__ . ':' . __LINE__ . '</>' . PHP_EOL, OutputInterface::VERBOSITY_VERBOSE);
 
         // breese stack needs to be set
         $input->setOption('stack', $input->getOption('stack') ?: select(
@@ -519,7 +555,7 @@ class NewCommand extends Command
             'composer require laravel/breeze --dev',
 
             trim(sprintf(
-                $this->phpBinary() . ' artisan breeze:install %s %s %s %s %s',
+                $this->phpBinary() . ' artisan breeze:install %s %s %s %s',
                 $input->getOption('stack'),
                 $input->getOption('pest') ? '--pest' : '',
                 $input->getOption('dark') ? '--dark' : '',
@@ -528,8 +564,6 @@ class NewCommand extends Command
         ]);
 
         $this->runCommands($commands, $input, $output, workingPath: $directory);
-
-        $this->commitChanges('Install Breeze', $directory, $input, $output);
     }
 
 
@@ -820,92 +854,105 @@ class NewCommand extends Command
     }
 
 
+    protected function copyDirectory(string $source, string $destination)
+    {
+        $filesystem = new Filesystem();
+        $filesystem->copyDirectory($source, $destination);
+    }
+
+    protected function copyFile(string $source, string $destination)
+    {
+        $filesystem = new Filesystem();
+        $filesystem->copy($source, $destination);
+    }
+
+
 
     // for reference
-    protected function EXECUTE_MASTER(InputInterface $input, OutputInterface $output): int
-    {
-        $this->validateStackOption($input);
+    // protected function EXECUTE_MASTER(InputInterface $input, OutputInterface $output): int
+    // {
+    //     $this->validateStackOption($input);
 
-        $name = $input->getArgument('name');
+    //     $name = $input->getArgument('name');
 
-        $directory = $name !== '.' ? getcwd() . '/' . $name : '.';
+    //     $directory = $name !== '.' ? getcwd() . '/' . $name : '.';
 
-        $this->composer = new Composer(new Filesystem(), $directory);
+    //     $this->composer = new Composer(new Filesystem(), $directory);
 
-        $version = $this->getVersion($input);
+    //     $version = $this->getVersion($input);
 
-        if (!$input->getOption('force')) {
-            $this->verifyApplicationDoesntExist($directory);
-        }
+    //     if (!$input->getOption('force')) {
+    //         $this->verifyApplicationDoesntExist($directory);
+    //     }
 
-        if ($input->getOption('force') && $directory === '.') {
-            throw new RuntimeException('Cannot use --force option when using current directory for installation!');
-        }
+    //     if ($input->getOption('force') && $directory === '.') {
+    //         throw new RuntimeException('Cannot use --force option when using current directory for installation!');
+    //     }
 
-        $composer = $this->findComposer();
+    //     $composer = $this->findComposer();
 
-        $commands = [
-            $composer . " create-project laravel/laravel \"$directory\" $version --remove-vcs --prefer-dist",
-        ];
+    //     $commands = [
+    //         $composer . " create-project laravel/laravel \"$directory\" $version --remove-vcs --prefer-dist",
+    //     ];
 
-        if ($directory != '.' && $input->getOption('force')) {
-            if (PHP_OS_FAMILY == 'Windows') {
-                array_unshift($commands, "(if exist \"$directory\" rd /s /q \"$directory\")");
-            } else {
-                array_unshift($commands, "rm -rf \"$directory\"");
-            }
-        }
+    //     if ($directory != '.' && $input->getOption('force')) {
+    //         if (PHP_OS_FAMILY == 'Windows') {
+    //             array_unshift($commands, "(if exist \"$directory\" rd /s /q \"$directory\")");
+    //         } else {
+    //             array_unshift($commands, "rm -rf \"$directory\"");
+    //         }
+    //     }
 
-        if (PHP_OS_FAMILY != 'Windows') {
-            $commands[] = "chmod 755 \"$directory/artisan\"";
-        }
+    //     if (PHP_OS_FAMILY != 'Windows') {
+    //         $commands[] = "chmod 755 \"$directory/artisan\"";
+    //     }
 
-        if (($process = $this->runCommands($commands, $input, $output))->isSuccessful()) {
-            if ($name !== '.') {
-                $this->replaceInFile(
-                    'APP_URL=http://localhost',
-                    'APP_URL=' . $this->generateAppUrl($name),
-                    $directory . '/.env'
-                );
+    //     if (($process = $this->runCommands($commands, $input, $output))->isSuccessful()) {
+    //         if ($name !== '.') {
+    //             $this->replaceInFile(
+    //                 'APP_URL=http://localhost',
+    //                 'APP_URL=' . $this->generateAppUrl($name),
+    //                 $directory . '/.env'
+    //             );
 
-                [$database, $migrate] = $this->promptForDatabaseOptions($directory, $input);
+    //             [$database, $migrate] = $this->promptForDatabaseOptions($directory, $input);
 
-                $this->configureDefaultDatabaseConnection($directory, $database, $name, $migrate);
+    //             $this->configureDefaultDatabaseConnection($directory, $database, $name, $migrate);
 
-                if ($migrate) {
-                    $this->runCommands([
-                        $this->phpBinary() . ' artisan migrate',
-                    ], $input, $output, workingPath: $directory);
-                }
-            }
+    //             if ($migrate) {
+    //                 $this->runCommands([
+    //                     $this->phpBinary() . ' artisan migrate',
+    //                 ], $input, $output, workingPath: $directory);
+    //             }
+    //         }
 
-            if ($input->getOption('git') || $input->getOption('github') !== false) {
-                $this->createRepository($directory, $input, $output);
-            }
+    //         if ($input->getOption('git') || $input->getOption('github') !== false) {
+    //             $this->createRepository($directory, $input, $output);
+    //         }
 
-            if ($input->getOption('breeze')) {
-                $this->installBreeze($directory, $input, $output);
-            } elseif ($input->getOption('jet')) {
-                $this->installJetstream($directory, $input, $output);
-            } elseif ($input->getOption('pest')) {
-                $this->installPest($directory, $input, $output);
-            }
+    //         if ($input->getOption('breeze')) {
+    //             $this->installBreeze($directory, $input, $output);
+    //         } elseif ($input->getOption('jet')) {
+    //             $this->installJetstream($directory, $input, $output);
+    //         } elseif ($input->getOption('pest')) {
+    //             $this->installPest($directory, $input, $output);
+    //         }
 
-            if ($input->getOption('github') !== false) {
-                $this->pushToGitHub($name, $directory, $input, $output);
-                $output->writeln('');
-            }
+    //         if ($input->getOption('github') !== false) {
+    //             $this->pushToGitHub($name, $directory, $input, $output);
+    //             $output->writeln('');
+    //         }
 
-            $output->writeln("  <bg=blue;fg=white> INFO </> Application ready in <options=bold>[{$name}]</>. You can start your local development using:" . PHP_EOL);
+    //         $output->writeln("  <bg=blue;fg=white> INFO </> Application ready in <options=bold>[{$name}]</>. You can start your local development using:" . PHP_EOL);
 
-            $output->writeln('<fg=gray>➜</> <options=bold>cd ' . $name . '</>');
-            $output->writeln('<fg=gray>➜</> <options=bold>php artisan serve</>');
-            $output->writeln('');
+    //         $output->writeln('<fg=gray>➜</> <options=bold>cd ' . $name . '</>');
+    //         $output->writeln('<fg=gray>➜</> <options=bold>php artisan serve</>');
+    //         $output->writeln('');
 
-            $output->writeln('  New to Laravel? Check out our <href=https://bootcamp.laravel.com>bootcamp</> and <href=https://laravel.com/docs/installation#next-steps>documentation</>. <options=bold>Build something amazing!</>');
-            $output->writeln('');
-        }
+    //         $output->writeln('  New to Laravel? Check out our <href=https://bootcamp.laravel.com>bootcamp</> and <href=https://laravel.com/docs/installation#next-steps>documentation</>. <options=bold>Build something amazing!</>');
+    //         $output->writeln('');
+    //     }
 
-        return $process->getExitCode();
-    }
+    //     return $process->getExitCode();
+    // }
 }
