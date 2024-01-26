@@ -5,6 +5,8 @@ namespace Laravel\Installer\Console;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Composer;
 use Illuminate\Support\ProcessUtils;
+
+
 use RuntimeException;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
@@ -29,11 +31,11 @@ class NewCommand extends Command
    * @var \Illuminate\Support\Composer
    */
   protected $composer;
+
   private $allPackages;
 
   public function __construct()
   {
-    parent::__construct();
 
     $this->allPackages = collect([
       // Friendly name (Pascel) => composer package with args
@@ -43,6 +45,8 @@ class NewCommand extends Command
       'LaravelPermission' => ['spatie/laravel-permission'],
       'LaravelMedialibrary' => ['spatie/laravel-medialibrary'],
     ]);
+
+    parent::__construct();
   }
 
   /**
@@ -58,17 +62,25 @@ class NewCommand extends Command
       ->addArgument('name', InputArgument::REQUIRED)
       ->addOption('pest', null, InputOption::VALUE_NONE, 'Installs the Pest testing framework')
       ->addOption('force', 'f', InputOption::VALUE_NONE, 'Forces install even if the directory already exists')
+      ->addOption('dev', null, InputOption::VALUE_NONE, 'Installs the latest "development" release')
+      ->addOption('laravel-quiet', null, InputOption::VALUE_OPTIONAL, 'Dont show any Laravel Install', true)
 
       //add laradock
       ->addOption('laradock', null, InputOption::VALUE_NONE, 'Installs the Laradock scaffolding (in project)')
 
       //composer packages to add
-      ->addOption('all', null, InputOption::VALUE_NONE, 'Installs all the Composer packages');
+      ->addOption('all', null, InputOption::VALUE_NONE, 'Installs all the Composer packages')
+      //;
+    ;
 
-    // // loop through allPackages and add an option for each one
-    // $this->allPackages->each(function ($value, $key) {
-    //   $this->addOption($key, null, InputOption::VALUE_NONE, 'Installs the ' . $key . ' package');
-    // });
+    // $options = collect(($this->getDefinition())->getOptions())->keys();
+
+
+    // use the allPackages collection to add the options
+
+    $this->allPackages->keys()->each(function ($key) {
+      $this->addOption($key, null, InputOption::VALUE_NONE, 'Installs the ' . $key . ' package');
+    });
   }
 
 
@@ -100,11 +112,11 @@ class NewCommand extends Command
 '
         // show name of the project if passed as an argument
         . ($input->getArgument('name') ? ' - Name: <options=bold>' . $input->getArgument('name') . '</>' . PHP_EOL : '')
-
-        . ' - Project directory: <options=bold>' . getcwd() . '/' . $input->getArgument('name') . '</>' . PHP_EOL
+        . ($input->getArgument('name') ? ' - Project directory: <options=bold>' . getcwd() . '/' . $input->getArgument('name') . '</>' . PHP_EOL : '')
         . ($input->getOption('laradock') ? ' - Laradock: <options=bold>Yes</>' . PHP_EOL : '')
-        // all
         . ($input->getOption('all') ? ' - All Packages: <options=bold>Yes</>' . PHP_EOL : '')
+
+      // all
 
 
 
@@ -138,9 +150,11 @@ class NewCommand extends Command
     */
 
 
+
+
     if ($input->getOption('all')) {
       $this->allPackages->each(function ($value, $key) use ($input, $output) {
-        $output->writeln($key);
+        $input->setOption($key, true);
       });
     } else {
       $this->allPackages->each(function ($value, $key) use ($input) {
@@ -152,6 +166,15 @@ class NewCommand extends Command
         }
       });
     }
+
+    $this->installComposerPackages($input, $output);
+
+
+    //
+
+
+
+
   }
 
 
@@ -171,14 +194,16 @@ class NewCommand extends Command
 
     // $output in Yellow Excuting... filename with line number
     $output->writeln('  <bg=yellow;fg=black> Excuting... </>' . PHP_EOL);
-    $output->writeln('  <fg=yellow;options=bold>File:</> ' . __FILE__  . ":" . __LINE__ . PHP_EOL);
+    $output->writeln('  <fg=yellow;options=bold>execute:</> ' . __FILE__  . ":" . __LINE__ . PHP_EOL);
 
-    // $this->validateStackOption($input);
     $name = $input->getArgument('name');
     $directory = $name !== '.' ? getcwd() . '/' . $name : '.';
-    $output->writeln($directory);
+
+    $version = $this->getVersion($input);
+    $quite = $input->getOption('laravel-quiet') ? '--quiet' : '';
+    // $output->writeln($directory);
     $this->composer = new Composer(new Filesystem(), $directory);
-    // $version = $this->getVersion($input);
+
 
     if (!$input->getOption('force')) {
       $this->verifyApplicationDoesntExist($directory);
@@ -188,9 +213,9 @@ class NewCommand extends Command
       throw new RuntimeException('Cannot use --force option when using current directory for installation!');
     }
     $composer = $this->findComposer();
+
     $commands = [
-      // $composer . " create-project laravel/laravel \"$directory\" $version --remove-vcs --prefer-dist",
-      $composer . " create-project laravel/laravel \"$directory\" $version --remove-vcs --prefer-dist --quiet",
+      $composer . " create-project $quite laravel/laravel \"$directory\" $version --remove-vcs --prefer-dist",
     ];
 
     if ($directory != '.' && $input->getOption('force')) {
@@ -481,21 +506,18 @@ class NewCommand extends Command
     return [$database ?? $defaultDatabase, $migrate ?? false];
   }
 
+  protected function installComposerPackages(InputInterface $input, OutputInterface $output)
+  {
+    // Check each composer package option and install it if selected
+    foreach ($this->allPackages as $package => $composerArgs) {
+      if ($input->getOption($package)) {
+        $output->writeln("Installing $package...");
+        $this->requireComposerPackages([$composerArgs[0]], $output, ...$composerArgs);
+      }
+    }
+  }
 
 
-
-
-
-
-
-
-  /**
-   * Install Pest into the application.
-   *
-   * @param  \Symfony\Component\Console\Input\InputInterface  $input
-   * @param  \Symfony\Component\Console\Output\OutputInterface  $output
-   * @return void
-   */
   protected function installPest(string $directory, InputInterface $input, OutputInterface $output)
   {
     if (
@@ -542,13 +564,10 @@ class NewCommand extends Command
       'echo \'QUEUE_HOST=beanstalkd\' >> .env',
       'cd ..'
     ]);
+
+    $this->runCommands($commands, $input, $output, workingPath: $directory);
   }
 
-
-  /**
-   * Select Composer packages to install.
-   * 
-   */
   protected function configureComposerPackages(InputInterface $input, OutputInterface $output)
   {
 
@@ -580,16 +599,6 @@ class NewCommand extends Command
     }
   }
 
-
-
-  /**
-   * Create a Git repository and commit the base Laravel skeleton.
-   *
-   * @param  string  $directory
-   * @param  \Symfony\Component\Console\Input\InputInterface  $input
-   * @param  \Symfony\Component\Console\Output\OutputInterface  $output
-   * @return void
-   */
   protected function createRepository(string $directory, InputInterface $input, OutputInterface $output)
   {
     $branch = $input->getOption('branch') ?: $this->defaultBranch();
@@ -604,15 +613,6 @@ class NewCommand extends Command
     $this->runCommands($commands, $input, $output, workingPath: $directory);
   }
 
-  /**
-   * Commit any changes in the current working directory.
-   *
-   * @param  string  $message
-   * @param  string  $directory
-   * @param  \Symfony\Component\Console\Input\InputInterface  $input
-   * @param  \Symfony\Component\Console\Output\OutputInterface  $output
-   * @return void
-   */
   protected function commitChanges(string $message, string $directory, InputInterface $input, OutputInterface $output)
   {
     if (!$input->getOption('git') && $input->getOption('github') === false) {
@@ -627,15 +627,6 @@ class NewCommand extends Command
     $this->runCommands($commands, $input, $output, workingPath: $directory);
   }
 
-  /**
-   * Create a GitHub repository and push the git log to it.
-   *
-   * @param  string  $name
-   * @param  string  $directory
-   * @param  \Symfony\Component\Console\Input\InputInterface  $input
-   * @param  \Symfony\Component\Console\Output\OutputInterface  $output
-   * @return void
-   */
   protected function pushToGitHub(string $name, string $directory, InputInterface $input, OutputInterface $output)
   {
     $process = new Process(['gh', 'auth', 'status']);
@@ -657,12 +648,6 @@ class NewCommand extends Command
     $this->runCommands($commands, $input, $output, workingPath: $directory, env: ['GIT_TERMINAL_PROMPT' => 0]);
   }
 
-  /**
-   * Verify that the application does not already exist.
-   *
-   * @param  string  $directory
-   * @return void
-   */
   protected function verifyApplicationDoesntExist($directory)
   {
     if ((is_dir($directory) || is_file($directory)) && $directory != getcwd()) {
@@ -670,12 +655,6 @@ class NewCommand extends Command
     }
   }
 
-  /**
-   * Generate a valid APP_URL for the given application name.
-   *
-   * @param  string  $name
-   * @return string
-   */
   protected function generateAppUrl($name)
   {
     $hostname = mb_strtolower($name) . '.test';
@@ -683,23 +662,11 @@ class NewCommand extends Command
     return $this->canResolveHostname($hostname) ? 'http://' . $hostname : 'http://localhost';
   }
 
-  /**
-   * Determine whether the given hostname is resolvable.
-   *
-   * @param  string  $hostname
-   * @return bool
-   */
   protected function canResolveHostname($hostname)
   {
     return gethostbyname($hostname . '.') !== $hostname . '.';
   }
 
-  /**
-   * Get the version that should be downloaded.
-   *
-   * @param  \Symfony\Component\Console\Input\InputInterface  $input
-   * @return string
-   */
   protected function getVersion(InputInterface $input)
   {
     if ($input->getOption('dev')) {
@@ -709,21 +676,16 @@ class NewCommand extends Command
     return '';
   }
 
-  /**
-   * Get the composer command for the environment.
-   *
-   * @return string
-   */
+  protected function getComposerQuietOption()
+  {
+    return $this->composer->getQuietOption();
+  }
+
   protected function findComposer()
   {
     return implode(' ', $this->composer->findComposer());
   }
 
-  /**
-   * Get the path to the appropriate PHP binary.
-   *
-   * @return string
-   */
   protected function phpBinary()
   {
     $phpBinary = (new PhpExecutableFinder)->find(false);
@@ -733,36 +695,16 @@ class NewCommand extends Command
       : 'php';
   }
 
-  /**
-   * Install the given Composer Packages into the application.
-   *
-   * @return bool
-   */
   protected function requireComposerPackages(array $packages, OutputInterface $output, bool $asDev = false)
   {
     return $this->composer->requirePackages($packages, $asDev, $output);
   }
 
-  /**
-   * Remove the given Composer Packages from the application.
-   *
-   * @return bool
-   */
   protected function removeComposerPackages(array $packages, OutputInterface $output, bool $asDev = false)
   {
     return $this->composer->removePackages($packages, $asDev, $output);
   }
 
-  /**
-   * Run the given commands.
-   *
-   * @param  array  $commands
-   * @param  \Symfony\Component\Console\Input\InputInterface  $input
-   * @param  \Symfony\Component\Console\Output\OutputInterface  $output
-   * @param  string|null  $workingPath
-   * @param  array  $env
-   * @return \Symfony\Component\Process\Process
-   */
   protected function runCommands($commands, InputInterface $input, OutputInterface $output, string $workingPath = null, array $env = [])
   {
     if (!$output->isDecorated()) {
@@ -810,13 +752,6 @@ class NewCommand extends Command
     return $process;
   }
 
-  /**
-   * Replace the given file.
-   *
-   * @param  string  $replace
-   * @param  string  $file
-   * @return void
-   */
   protected function replaceFile(string $replace, string $file)
   {
     $stubs = dirname(__DIR__) . '/stubs';
@@ -827,14 +762,6 @@ class NewCommand extends Command
     );
   }
 
-  /**
-   * Replace the given string in the given file.
-   *
-   * @param  string|array  $search
-   * @param  string|array  $replace
-   * @param  string  $file
-   * @return void
-   */
   protected function replaceInFile(string|array $search, string|array $replace, string $file)
   {
     file_put_contents(
@@ -843,14 +770,6 @@ class NewCommand extends Command
     );
   }
 
-  /**
-   * Replace the given string in the given file using regular expressions.
-   *
-   * @param  string|array  $search
-   * @param  string|array  $replace
-   * @param  string  $file
-   * @return void
-   */
   protected function pregReplaceInFile(string $pattern, string $replace, string $file)
   {
     file_put_contents(
