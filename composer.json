@@ -1,5 +1,5 @@
 {
-  "name": "dwoodard/laravel_installer",
+  "name": "dwoodard/spinup",
   "description": "Custom Laravel application installer.",
   "keywords": ["laravel"],
   "license": "MIT",
@@ -22,7 +22,7 @@
       "phpunit/phpunit": "^10.4"
   },
   "bin": [
-      "bin/laravel"
+      "bin/spinup"
   ],
   "autoload": {
       "psr-4": {
