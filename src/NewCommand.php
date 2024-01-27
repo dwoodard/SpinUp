@@ -220,12 +220,36 @@ class NewCommand extends Command
 
 
 
-        // Install Deploy Script
+        /*
+        |--------------------------------------------------------------------------
+        | Install Deploy Script
+        |--------------------------------------------------------------------------
+        | This script automates the setup and management of a Laravel web
+        | application within a Docker environment. It checks and
+        | installs dependencies, manages database migrations,
+        | and starts or builds Docker containers for local development.
+        |
+        | stubs/root/deploy.sh
+        */
         $this->installDeployScript($input, $output);
 
-        // Install Breeze
+
+        /*
+        |--------------------------------------------------------------------------
+        | Install Breeze
+        |--------------------------------------------------------------------------
+        | Laravel Breeze is a minimal, simple implementation of all of
+        | Laravel's authentication features, including login,
+        | registration, password reset, email verification, and
+        | password confirmation.
+        |
+        | [Docs]   https://laravel.com/docs/starter-kits#laravel-breeze
+        */
         $this->installBreeze($input, $output, $this->directory);
 
+
+
+        // Install Template
 
         // runInstallComposerPackages($input, $output);
 

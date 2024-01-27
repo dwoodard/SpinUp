@@ -13,13 +13,13 @@ fi
 export COMPOSER_ALLOW_SUPERUSER=1
 
 
-# CHECKS
-
+# DEPENDENCIES CHECKS
 echo "--- php: $(php -r 'echo PHP_VERSION;') ---"
 echo "--- composer: $(composer -V | awk '{ print $3 }') ---"
 echo "--- npm: $(npm -v || echo 'run: npm install') ---"
 echo "--- node: $(node -v || echo 'run: node install') ---"
-
+echo "--- docker: $(docker -v | awk '{print $3}'  ) ---"
+echo "--- docker-compose: $(docker-compose -v) ---"
 
 # check if both .env exist
 if [ ! -f ".env" ]; then
