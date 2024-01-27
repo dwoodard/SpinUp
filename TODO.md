@@ -1,8 +1,11 @@
 #TODO
 
-- FIX Breeze output, make it quiet by default
-```
-./composer.json has been updated
-Running composer update laravel/breeze
-```
+- Dashboard to Admin/Dashboard
+  - append routes/admin.php to web.php
+
+- Seeder for:
+ - Users
+
+
+
 
