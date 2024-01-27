@@ -281,7 +281,8 @@ class NewCommand extends Command
         */
         $this->installFeatures($input, $output);
 
-
+        // when this script is done, we want be in the project directory
+        chdir($this->directory);
 
         return 0;
     }
@@ -523,18 +524,33 @@ class NewCommand extends Command
     private function installLaravelPWA(InputInterface $input, OutputInterface $output)
     {
         // install laravel pwa
+        $this->timeLineOutput(true, $output, "Installing Laravel PWA...");
 
-        //commands
+
+
+        //php artisan vendor:publish --provider="LaravelPWA\Providers\LaravelPWAServiceProvider"
         $commands = array_filter([
+            'composer require silviolleite/laravelpwa --prefer-dist >/dev/null 2>&1',
             $this->phpBinary() . ' artisan vendor:publish --provider="LaravelPWA\Providers\LaravelPWAServiceProvider"',
-            /*
-          I need to find the default html file and add @laravelPWA to it
-          zsh: no such file or directory: head
-        */
-            exec('find . -name "app.blade.php" -exec sed -i \'\' \'s+<head>+<head>@laravelPWA+g\' {} \;')
         ]);
+        // rather than using sed, we can just replace the file
+        $this->replaceInFile(
+            '<head>',
+            '<head>' . PHP_EOL . '    @laravelPWA',
+            $this->directory . '/resources/views/app.blade.php',
+        );
 
-        $this->timeLineOutput(true, $output, "Installing Laravel PWA...",  "✅ done");
+
+
+
+
+
+
+        $process = $this->runCommands($commands, $input, $output, workingPath: $this->directory);
+
+        $process->isSuccessful() ?
+            $this->timeLineOutput(true, $output, "Installing Laravel PWA...",  "✅ done") :
+            $this->timeLineOutput(true, $output, "Installing Laravel PWA...",  "❌ failed");
     }
     private function installLaravelSchemalessAttributes(InputInterface $input, OutputInterface $output)
     {
