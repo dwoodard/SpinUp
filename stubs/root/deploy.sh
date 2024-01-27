@@ -1,6 +1,15 @@
 #!/usr/bin/env bash
 # Example useage: [root of project] ./deploy.sh
 
+
+if [ ${1:-1} == 'down' ]; then
+  cd laradock || exit
+  docker-compose down
+  cd ..
+  exit 0
+fi
+
+
 export COMPOSER_ALLOW_SUPERUSER=1
 
 
@@ -81,5 +90,32 @@ if [ ${1:-1} == 'build' ]; then
     echo 'Redis: http://localhost:9987 laradock:laradock'
   fi
 
+
+#check composer packages are installed
+if [ ! -d "vendor" ]; then
+  docker exec -it laradock-workspace-1 sh -c 'composer -n install;'
+else
+  echo 'composer was installed'
+fi
+
+# check if .env set
+if [ ! -f ".env" ]; then
+  docker exec -it laradock-workspace-1 sh -c "php artisan key:generate"
+fi
+
+#check npm packages are installed
+if [ ! -d "node_modules" ]; then
+  echo 'No dependencies installed. Trying to run npm install.'
+  docker exec -it laradock-workspace-1 sh -c "npm install"
+else
+  echo 'npm was installed'
+fi
+
+#run migrations
+if [ ${1:-1} == 'fresh' ]; then
+  docker exec -it laradock-workspace-1 sh -c "php artisan migrate:fresh"
+else
+  docker exec -it laradock-workspace-1 sh -c "php artisan migrate"
+fi
 
 $SHELL # Open a new shell to run the application

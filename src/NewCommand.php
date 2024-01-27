@@ -68,7 +68,6 @@ class NewCommand extends Command
             ->addOption('force', 'f', InputOption::VALUE_NONE, 'Forces install even if the directory already exists')
             ->addOption('dev', null, InputOption::VALUE_NONE, 'Installs the latest "development" release')
             ->addOption('laravel-quiet', null, InputOption::VALUE_OPTIONAL, 'Dont show any Laravel Install', true)
-            ->addOption('laradock-quiet', null, InputOption::VALUE_OPTIONAL, 'Dont show any Laradock Install', true)
 
 
             //add laradock
@@ -159,20 +158,67 @@ class NewCommand extends Command
     {
         $output->writeln('  <bg=blue;fg=black> Excuting... </> '  . '<fg=blue>' . __FILE__ . ':' . __LINE__ . '</>' . PHP_EOL, OutputInterface::VERBOSITY_VERBOSE);
 
-        //SETUP
+
+        /*
+        |--------------------------------------------------------------------------
+        | SETUP
+        |--------------------------------------------------------------------------
+        |
+        | Variables and setup for the rest of the script, including
+        | setting up the project name, directory, and composer
+        | instance.
+        |
+        */
         $this->name = $input->getArgument('name');
         $this->directory =  ($this->name === '.') ? getcwd() : getcwd() . '/' . $this->name;
         $this->composer = new Composer(new Filesystem(), $this->directory);
 
 
-        // Now that we have the name, we can check if the directory exists
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Handle If Exsisting Project
+        |--------------------------------------------------------------------------
+        |  Now that we have the name, we can check if the directory exists
+        |  and if it does, we can delete it if the -f flag is passed.
+        |  If not, we can ask if they want to delete it.
+        */
         $this->handleIfExsistingProject($input, $output);
 
-        // Install Laravel
+        /*
+        |--------------------------------------------------------------------------
+        | Install Laravel
+        |--------------------------------------------------------------------------
+        |
+        | This section installs Laravel, and sets up the project, including
+        | setting up the database, and installing the composer packages
+        | that were selected.
+        |
+        */
+
         $this->installLaravel($input, $output);
 
-        // Install Laradock
+
+        /* anything below here should be optional and should be able to be turned off */
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Install Laradock
+        |--------------------------------------------------------------------------
+        | [Optional] ask if they want to install Laradock, and if so, install it.
+        |
+        | This section installs Laradock, a collection of Docker images
+        | used to run Laravel projects. It also sets up the .envs for
+        | both Laravel and Laradock.
+        |
+        | [Docs]   https://laradock.io/
+        |
+        */
         $this->installLaradock($input, $output);
+
+
 
         // Install Deploy Script
         $this->installDeployScript($input, $output);
@@ -181,47 +227,9 @@ class NewCommand extends Command
         $this->installBreeze($input, $output, $this->directory);
 
 
-        // runCheckIfForceOptionIsPassed($input, $output);
-
         // runInstallComposerPackages($input, $output);
 
 
-        // $output->writeln($directory);
-
-
-
-
-        // if (PHP_OS_FAMILY != 'Windows') {
-        //     $commands[] = "chmod 755 \"$this->directory/artisan\"";
-        // }
-
-        // $commands = [];
-        // $name = $input->getArgument('name');
-        // $directory = $this->directory;
-        // if (($process = $this->runCommands($commands, $input, $output))->isSuccessful()) {
-        //     if ($name !== '.') {
-        //         $this->replaceInFile(
-        //             'APP_URL=http://localhost',
-        //             'APP_URL=' . $this->generateAppUrl($name),
-        //             $directory . '/.env'
-        //         );
-
-        //         [$database, $migrate] = $this->promptForDatabaseOptions($directory, $input);
-
-
-        //         $this->configureDefaultDatabaseConnection($directory, $database, $name, $migrate);
-
-        //         // prompt for composer packages
-        //         // $this->configureComposerPackages($input, $output);
-
-
-        //         if ($migrate) {
-        //             $this->runCommands([
-        //                 $this->phpBinary() . ' artisan migrate',
-        //             ], $input, $output, workingPath: $directory);
-        //         }
-        //     }
-        // }
 
         return 0;
     }
@@ -270,7 +278,6 @@ class NewCommand extends Command
         $this->timeLineOutput(true, $output, 'Installing Laravel...',  "✅ done");
     }
 
-    //installDeployScript
     protected function installDeployScript(InputInterface $input, OutputInterface $output)
     {
         $output->writeln('  <bg=blue;fg=black> installDeployScript... </> '  . '<fg=blue>' . __FILE__ . ':' . __LINE__ . '</>' . PHP_EOL, OutputInterface::VERBOSITY_VERBOSE);
@@ -280,19 +287,31 @@ class NewCommand extends Command
         $stubRoot = dirname(__DIR__) . '/stubs' . '/root';
 
         $this->copyFile(
-            $stubRoot . '/deploy',
-            $this->directory . '/deploy'
+            $stubRoot . '/deploy.sh',
+            $this->directory . '/deploy.sh'
         );
+        // set permissions
+        $commands = [
+            "chmod 755 $this->directory/deploy.sh",
+        ];
+        $this->runCommands($commands, $input, $output);
 
         // replace last output line with a green checkmark
         $this->timeLineOutput(true, $output, 'Installing Deploy Script...',  "✅ done");
     }
 
-    /* Setup Functions */
+    /*
+    |--------------------------------------------------------------------------
+    | Setup Functions
+    |--------------------------------------------------------------------------
+    | Below are functions that are used to setup the project. They are
+    | called from the main execute function, these should be modular
+    | to allow for easy editing and adding of new features.
+    |
+    */
+
     protected function installLaradock(InputInterface $input, OutputInterface $output)
     {
-
-
         $input->setOption('laradock', $input->getOption('laradock') || confirm(
             label: 'Would you like to install Laradock?',
             default: true,
@@ -305,13 +324,16 @@ class NewCommand extends Command
         $output->writeln('  <bg=blue;fg=black> installLaradock... </> '  . '<fg=blue>' . __FILE__ . ':' . __LINE__ . '</>' . PHP_EOL, OutputInterface::VERBOSITY_VERBOSE);
         $this->timeLineOutput(false, $output, 'Installing Laradock...');
 
-
-        $quite = $input->getOption('laradock-quiet') ? '>/dev/null 2>&1' : '';
-
-        // first clone the repo
         $laravelCommands = array_filter([
-            "git clone https://github.com/Laradock/laradock.git laradock $quite",
+            "git clone https://github.com/Laradock/laradock.git laradock >/dev/null 2>&1",
+            // this will run form the root directory
+            "sed -i '' 's/^DB_HOST=127.0.0.1/DB_HOST=mysql/g' .env",
+            "sed -i '' 's/^DB_DATABASE=laravel/DB_DATABASE=default/g' .env",
+            "sed -i '' 's/^DB_USERNAME=root/DB_USERNAME=root/g' .env",
+            "sed -i '' 's/^DB_PASSWORD=/DB_PASSWORD=root/g' .env",
+            "sed -i '' 's/^REDIS_HOST=.*/REDIS_HOST=redis/g' .env",
         ]);
+
         $process = $this->runCommands(
             $laravelCommands,
             $input,
@@ -319,7 +341,7 @@ class NewCommand extends Command
             workingPath: $this->directory,
         );
 
-        // if process successful, output green checkmark
+
         $process->isSuccessful() ?
             $this->timeLineOutput(true, $output, 'Installing Laradock...',  "✅ done") :
             $this->timeLineOutput(true, $output, 'Installing Laradock...',  "❌ failed");
@@ -330,11 +352,6 @@ class NewCommand extends Command
         $laradockCommands = array_filter([
             'cp .env.example .env',
             'sed -i "" "s+DATA_PATH_HOST=~/.laradock/data+DATA_PATH_HOST=../data+g" .env',
-            'sed -i \'\' \'s:DB_HOST=127.0.0.1:DB_HOST=mysql:g\' .env',
-            'sed -i \'\' \'s:REDIS_HOST=127.0.0.1:REDIS_HOST=redis:g\' .env',
-            'sed -i \'\' \'s:DB_PASSWORD=.*:DB_PASSWORD=root:g\' .env',
-            'echo \'QUEUE_HOST=beanstalkd\' >> .env',
-
         ]);
 
 
@@ -346,11 +363,33 @@ class NewCommand extends Command
         );
     }
 
+    /* Setup Functions END*/
 
-    // TimeLine Output
-    function timeLineOutput($eraseLine, $output, $message, $status = 'working')
-    {
-        if ($eraseLine) {
+
+    /*
+    |--------------------------------------------------------------------------
+    | Helper Functions
+    |--------------------------------------------------------------------------
+    | These functions are used to help with the setup functions above.
+    |
+    */
+
+    /*
+    |--------------------------------------------------------------------------
+    | TimeLine Output
+    |--------------------------------------------------------------------------
+    | While running through the setup, we want show the user what is happening
+    | and if it was successful or not. This function is used to output
+    | the status of the setup, while also removing the previous
+    |
+    */
+    function timeLineOutput(
+        $eraseLastLine = false,
+        $output,
+        $message,
+        $status = 'in progress'
+    ) {
+        if ($eraseLastLine) {
             // move cursor up and erase line
             $output->write("\033[1A"); // Move up
             $output->write("\033[K"); // Erase line
@@ -358,10 +397,6 @@ class NewCommand extends Command
 
         $output->writeln("<bg=green;fg=black> $message </> $status");
     }
-
-
-    /* Setup Functions END*/
-
 
 
 
@@ -473,63 +508,6 @@ class NewCommand extends Command
         return $version >= 11;
     }
 
-    /**
-     * Comment the irrelevant database configuration entries for SQLite applications.
-     *
-     * @param  string  $directory
-     * @return void
-     */
-    protected function commentDatabaseConfigurationForSqlite(string $directory): void
-    {
-        $defaults = [
-            'DB_HOST=127.0.0.1',
-            'DB_PORT=3306',
-            'DB_DATABASE=laravel',
-            'DB_USERNAME=root',
-            'DB_PASSWORD=',
-        ];
-
-        $this->replaceInFile(
-            $defaults,
-            collect($defaults)->map(fn ($default) => "# {$default}")->all(),
-            $directory . '/.env'
-        );
-
-        $this->replaceInFile(
-            $defaults,
-            collect($defaults)->map(fn ($default) => "# {$default}")->all(),
-            $directory . '/.env.example'
-        );
-    }
-
-    /**
-     * Uncomment the relevant database configuration entries for non SQLite applications.
-     *
-     * @param  string  $directory
-     * @return void
-     */
-    protected function uncommentDatabaseConfiguration(string $directory)
-    {
-        $defaults = [
-            '# DB_HOST=127.0.0.1',
-            '# DB_PORT=3306',
-            '# DB_DATABASE=laravel',
-            '# DB_USERNAME=root',
-            '# DB_PASSWORD=',
-        ];
-
-        $this->replaceInFile(
-            $defaults,
-            collect($defaults)->map(fn ($default) => substr($default, 2))->all(),
-            $directory . '/.env'
-        );
-
-        $this->replaceInFile(
-            $defaults,
-            collect($defaults)->map(fn ($default) => substr($default, 2))->all(),
-            $directory . '/.env.example'
-        );
-    }
 
     /**
      * Install Laravel Breeze into the application.
@@ -559,14 +537,12 @@ class NewCommand extends Command
         $this->timeLineOutput(false, $output, 'Installing Breeze...');
 
         $commands = array_filter([
-            "composer require laravel/breeze --dev",
+            "composer require laravel/breeze --dev  >/dev/null 2>&1",
             trim(sprintf(
-                $this->phpBinary() . ' artisan breeze:install %s %s %s %s',
-                $input->getOption('stack'),
+                $this->phpBinary() . ' artisan breeze:install vue --dark %s %s',
                 $input->getOption('pest') ? '--pest' : '',
-                $input->getOption('dark') ? '--dark' : '',
                 $input->getOption('ssr') ? '--ssr' : '',
-            )),
+            ))
         ]);
 
         $process = $this->runCommands($commands, $input, $output, workingPath: $directory);
@@ -578,38 +554,7 @@ class NewCommand extends Command
 
 
 
-    /**
-     * Determine the default database connection.
-     *
-     * @param  string  $directory
-     * @param  \Symfony\Component\Console\Input\InputInterface  $input
-     * @return string
-     */
-    protected function promptForDatabaseOptions(string $directory, InputInterface $input)
-    {
-        // Laravel 11.x appliations use SQLite as default...
-        $defaultDatabase = $this->usingLaravel11OrNewer($directory) ? 'sqlite' : 'mysql';
 
-        if ($input->isInteractive()) {
-            $database = select(
-                label: 'Which database will your application use?',
-                options: [
-                    'mysql' => 'MySQL',
-                    'mariadb' => 'MariaDB',
-                    'pgsql' => 'PostgreSQL',
-                    'sqlite' => 'SQLite',
-                    'sqlsrv' => 'SQL Server',
-                ],
-                default: $defaultDatabase
-            );
-
-            if ($this->usingLaravel11OrNewer($directory) && $database !== $defaultDatabase) {
-                $migrate = confirm(label: 'Default database updated. Would you like to run the default database migrations?', default: true);
-            }
-        }
-
-        return [$database ?? $defaultDatabase, $migrate ?? false];
-    }
 
     protected function installComposerPackages(InputInterface $input, OutputInterface $output)
     {
