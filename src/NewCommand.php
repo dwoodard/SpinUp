@@ -36,20 +36,8 @@ class NewCommand extends Command
     private $directory;
 
 
-    private $allPackages;
-
     public function __construct()
     {
-
-        $this->allPackages = collect([
-            // Friendly name (Pascel) => composer package with args
-            'LaravelBreeze' => ['laravel/breeze', 'prefer-dist'],
-            'LaravelPWA' => ['silviolleite/laravelpwa', 'prefer-dist'],
-            'LaravelSchemalessAttributes' => ['spatie/laravel-schemaless-attributes'],
-            'LaravelPermission' => ['spatie/laravel-permission'],
-            'LaravelMedialibrary' => ['spatie/laravel-medialibrary'],
-        ]);
-
         parent::__construct();
     }
 
@@ -78,8 +66,6 @@ class NewCommand extends Command
             ->addOption('dark', null, InputOption::VALUE_NONE, 'Installs the dark theme for Breeze')
             ->addOption('ssr', null, InputOption::VALUE_NONE, 'Installs the SSR theme for Breeze')
 
-
-
             //composer packages to add
             ->addOption('all', null, InputOption::VALUE_NONE, 'Installs all the Composer packages')
 
@@ -88,11 +74,13 @@ class NewCommand extends Command
             ->addOption('laravel-schemaless-attributes', null, InputOption::VALUE_NONE, 'Installs the Laravel Schemaless Attributes scaffolding (in project)')
             ->addOption('laravel-permission', null, InputOption::VALUE_NONE, 'Installs the Laravel Permission scaffolding (in project)')
             ->addOption('laravel-medialibrary', null, InputOption::VALUE_NONE, 'Installs the Laravel Medialibrary scaffolding (in project)')
+
+            // componets
+            ->addOption('features', null, InputOption::VALUE_OPTIONAL | InputOption::VALUE_IS_ARRAY, 'Toggle components to install', [])
+
+
             //;
         ;
-
-        // $options = collect(($this->getDefinition())->getOptions())->keys();
-
     }
 
 
@@ -128,6 +116,7 @@ class NewCommand extends Command
                 . ($input->getOption('laradock') ? ' - Laradock: <options=bold>Yes</>' . PHP_EOL : '')
                 . ($input->getOption('pest') ? ' - Pest: <options=bold>Yes</>' . PHP_EOL : '')
                 . ($input->getOption('force') ? ' - Force Delete Project: <options=bold>Yes</>' . PHP_EOL : '')
+                . ($input->getOption('features') ? ' - Toggle Features: <options=bold>' . implode(', ', $input->getOption('features')) . '</>' . PHP_EOL : '')
 
                 . PHP_EOL
                 . PHP_EOL
@@ -142,6 +131,38 @@ class NewCommand extends Command
                 validate: fn ($value) => preg_match('/[^\pL\pN\-_.]/', $value) !== 0
                     ? 'The name may only contain letters, numbers, dashes, underscores, and periods.'
                     : null,
+            ));
+        }
+
+
+
+        // if features is passed assume we are asking what features to install, otherwise all features are installed
+        if ($input->getOption('features')) {
+            $features = collect([
+                'laravelpwa' => [
+                    "install" => true,
+                    "label" => 'Laravel PWA',
+                    "description" => 'Laravel PWA',
+                ],
+                'laravel-schemaless-attributes' => [
+                    "install" => false,
+                    "label" => 'Laravel Schemaless Attributes',
+                    "description" => 'Laravel Schemaless Attributes',
+
+                ],
+                'laravel-cashier' => [
+                    "install" => false,
+                    "label" => 'Laravel Cashier',
+                    "description" => 'Laravel Cashier (Stripe)',
+                ]
+            ]);
+
+
+
+            $input->setOption('features', multiselect(
+                label: 'Toggle Features',
+                options: $features->map(fn ($feature) => $feature['label'])->toArray(),
+                default: $features->filter(fn ($feature) => $feature['install'])->keys(),
             ));
         }
     }
@@ -249,9 +270,16 @@ class NewCommand extends Command
 
 
 
-        // Install Template
 
-        // runInstallComposerPackages($input, $output);
+        /*
+        |--------------------------------------------------------------------------
+        | Install Componets/Template Packages
+        |--------------------------------------------------------------------------
+        | Using Breeze as a base, we can install other packages that
+        | are commonly used in Laravel projects. These include
+        | Laravel PWA, Laravel Schemaless Attributes,
+        */
+        $this->installFeatures($input, $output);
 
 
 
@@ -282,7 +310,6 @@ class NewCommand extends Command
         }
     }
 
-    // installLaravel
     protected function installLaravel(InputInterface $input, OutputInterface $output)
     {
         $output->writeln('  <bg=blue;fg=black> installLaravel... </> '  . '<fg=blue>' . __FILE__ . ':' . __LINE__ . '</>' . PHP_EOL, OutputInterface::VERBOSITY_VERBOSE);
@@ -419,130 +446,8 @@ class NewCommand extends Command
         $output->writeln("<bg=green;fg=black> $message </> $status");
     }
 
-
-
-
-    /**
-     * Return the local machine's default Git branch if set or default to `main`.
-     *
-     * @return string
-     */
-    protected function defaultBranch()
-    {
-        $process = new Process(['git', 'config', '--global', 'init.defaultBranch']);
-
-        $process->run();
-
-        $output = trim($process->getOutput());
-
-        return $process->isSuccessful() && $output ? $output : 'main';
-    }
-
-    /**
-     * Configure the default database connection.
-     *
-     * @param  string  $directory
-     * @param  string  $database
-     * @param  string  $name
-     * @param  bool  $migrate
-     * @return void
-     */
-    protected function configureDefaultDatabaseConnection(string $directory, string $database, string $name, bool $migrate)
-    {
-        // MariaDB configuration only exists as of Laravel 11...
-        if ($database === 'mariadb' && !$this->usingLaravel11OrNewer($directory)) {
-            $database = 'mysql';
-        }
-
-        $this->pregReplaceInFile(
-            '/DB_CONNECTION=.*/',
-            'DB_CONNECTION=' . $database,
-            $directory . '/.env'
-        );
-
-        $this->pregReplaceInFile(
-            '/DB_CONNECTION=.*/',
-            'DB_CONNECTION=' . $database,
-            $directory . '/.env.example'
-        );
-
-        if ($database === 'sqlite') {
-            $environment = file_get_contents($directory . '/.env');
-
-            // If database options aren't commented, comment them for SQLite...
-            if (!str_contains($environment, '# DB_HOST=127.0.0.1')) {
-                $this->commentDatabaseConfigurationForSqlite($directory);
-
-                return;
-            }
-
-            return;
-        }
-
-        // Any commented database configuration options should be uncommented when not on SQLite...
-        $this->uncommentDatabaseConfiguration($directory);
-
-        $defaultPorts = [
-            'pgsql' => '5432',
-            'sqlsrv' => '1433',
-        ];
-
-        if (isset($defaultPorts[$database])) {
-            $this->replaceInFile(
-                'DB_PORT=3306',
-                'DB_PORT=' . $defaultPorts[$database],
-                $directory . '/.env'
-            );
-
-            $this->replaceInFile(
-                'DB_PORT=3306',
-                'DB_PORT=' . $defaultPorts[$database],
-                $directory . '/.env.example'
-            );
-        }
-
-        $this->replaceInFile(
-            'DB_DATABASE=laravel',
-            'DB_DATABASE=' . str_replace('-', '_', strtolower($name)),
-            $directory . '/.env'
-        );
-
-        $this->replaceInFile(
-            'DB_DATABASE=laravel',
-            'DB_DATABASE=' . str_replace('-', '_', strtolower($name)),
-            $directory . '/.env.example'
-        );
-    }
-
-    /**
-     * Determine if the application is using Laravel 11 or newer.
-     *
-     * @param  string  $directory
-     * @return bool
-     */
-    public function usingLaravel11OrNewer(string $directory): bool
-    {
-        $version = json_decode(file_get_contents($directory . '/composer.json'), true)['require']['laravel/framework'];
-        $version = str_replace('^', '', $version);
-        $version = explode('.', $version)[0];
-
-        return $version >= 11;
-    }
-
-
-    /**
-     * Install Laravel Breeze into the application.
-     *
-     * @param  string  $directory
-     * @param  \Symfony\Component\Console\Input\InputInterface  $input
-     * @param  \Symfony\Component\Console\Output\OutputInterface  $output
-     * @return void
-     */
     protected function installBreeze(InputInterface $input, OutputInterface $output, string $directory)
     {
-
-        // TODO: GO THROUGH THIS FUNCTION AND MAKE SURE IT WORKS
-
         $output->writeln('  <bg=blue;fg=black> installBreeze... </> '  . '<fg=blue>' . __FILE__ . ':' . __LINE__ . '</>' . PHP_EOL, OutputInterface::VERBOSITY_VERBOSE);
 
         $this->timeLineOutput(false, $output, 'Installing Breeze...');
@@ -565,18 +470,83 @@ class NewCommand extends Command
 
 
 
+    /*
+    |--------------------------------------------------------------------------
+    | INSTALL FEATURES
+    |--------------------------------------------------------------------------
+    | We want to show a list of features that can be installed, and
+    | allow the user to select which ones they want to install, via multi-select.
+    | We can then install the selected features.
+    | this function will be responsible for installing the features with a toggled on
+    | in the multi-select. we are going to assume all features are to be installed, unless
+    | a flag of --features is passed, then we will only install
+    | the components that are toggled on.
+    |
+    */
 
 
-    protected function installComposerPackages(InputInterface $input, OutputInterface $output)
+    protected function installFeatures(InputInterface $input, OutputInterface $output)
     {
-        // Check each composer package option and install it if selected
-        foreach ($this->allPackages as $package => $composerArgs) {
-            if ($input->getOption($package)) {
-                $output->writeln("Installing $package...");
-                $this->requireComposerPackages([$composerArgs[0]], $output, ...$composerArgs);
-            }
+        //
+        $output->writeln('  <bg=blue;fg=black> installFeatures... </> '  . '<fg=blue>' . __FILE__ . ':' . __LINE__ . '</>' . PHP_EOL, OutputInterface::VERBOSITY_VERBOSE);
+        $output->writeln('  <bg=blue;fg=black>' . collect($input->getOption('features'))  . PHP_EOL, OutputInterface::VERBOSITY_VERBOSE);
+
+
+        // loop through the features and install them
+        foreach ($input->getOption('features') as $feature) {
+            $this->installFeature($feature, $input, $output);
         }
     }
+
+    protected function installFeature($feature, InputInterface $input, OutputInterface $output)
+    {
+        $output->writeln('  <bg=blue;fg=black> installFeature... </> '  . '<fg=blue>' . __FILE__ . ':' . __LINE__ . '</>' . PHP_EOL, OutputInterface::VERBOSITY_VERBOSE);
+        $this->timeLineOutput(false, $output, "Installing $feature...");
+
+        switch ($feature) {
+            case 'laravelpwa':
+                $this->installLaravelPWA($input, $output);
+                break;
+            case 'laravel-schemaless-attributes':
+                $this->installLaravelSchemalessAttributes($input, $output);
+                break;
+            case 'laravel-cashier':
+                $this->installLaravelCashier($input, $output);
+                break;
+            default:
+                //  feature does not exist
+                $output->writeln('  <bg=red;fg=black> ERROR </> '  . '<fg=red>' . $feature . ' does not exist' . '</>' . PHP_EOL, OutputInterface::VERBOSITY_VERBOSE);
+                break;
+        }
+    }
+
+    private function installLaravelPWA(InputInterface $input, OutputInterface $output)
+    {
+        // install laravel pwa
+
+        //commands
+        $commands = array_filter([
+            $this->phpBinary() . ' artisan vendor:publish --provider="LaravelPWA\Providers\LaravelPWAServiceProvider"',
+            /*
+          I need to find the default html file and add @laravelPWA to it
+          zsh: no such file or directory: head
+        */
+            exec('find . -name "app.blade.php" -exec sed -i \'\' \'s+<head>+<head>@laravelPWA+g\' {} \;')
+        ]);
+
+        $this->timeLineOutput(true, $output, "Installing Laravel PWA...",  "✅ done");
+    }
+    private function installLaravelSchemalessAttributes(InputInterface $input, OutputInterface $output)
+    {
+        $this->timeLineOutput(true, $output, "Installing Laravel Schemaless Attributes...",  "✅ done");
+    }
+    private function installLaravelCashier(InputInterface $input, OutputInterface $output)
+    {
+        $this->timeLineOutput(true, $output, "Installing Laravel Cashier...",  "✅ done");
+    }
+
+
+
 
 
     protected function installPest(string $directory, InputInterface $input, OutputInterface $output)
@@ -640,19 +610,6 @@ class NewCommand extends Command
         }
     }
 
-    protected function createRepository(string $directory, InputInterface $input, OutputInterface $output)
-    {
-        $branch = $input->getOption('branch') ?: $this->defaultBranch();
-
-        $commands = [
-            'git init -q',
-            'git add .',
-            'git commit -q -m "Set up a fresh Laravel app"',
-            "git branch -M {$branch}",
-        ];
-
-        $this->runCommands($commands, $input, $output, workingPath: $directory);
-    }
 
     protected function commitChanges(string $message, string $directory, InputInterface $input, OutputInterface $output)
     {
