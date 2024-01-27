@@ -70,6 +70,7 @@ class NewCommand extends Command
             ->addOption('laravel-quiet', null, InputOption::VALUE_OPTIONAL, 'Dont show any Laravel Install', true)
             ->addOption('laradock-quiet', null, InputOption::VALUE_OPTIONAL, 'Dont show any Laradock Install', true)
 
+
             //add laradock
             ->addOption('laradock', null, InputOption::VALUE_NONE, 'Installs the Laradock scaffolding (in project)')
 
@@ -128,6 +129,7 @@ class NewCommand extends Command
                 . ($input->getOption('laradock') ? ' - Laradock: <options=bold>Yes</>' . PHP_EOL : '')
                 . ($input->getOption('pest') ? ' - Pest: <options=bold>Yes</>' . PHP_EOL : '')
                 . ($input->getOption('force') ? ' - Force Delete Project: <options=bold>Yes</>' . PHP_EOL : '')
+
                 . PHP_EOL
                 . PHP_EOL
         );
@@ -278,8 +280,8 @@ class NewCommand extends Command
         $stubRoot = dirname(__DIR__) . '/stubs' . '/root';
 
         $this->copyFile(
-            $stubRoot . '/deploy.sh',
-            $this->directory . '/deploy.sh'
+            $stubRoot . '/deploy',
+            $this->directory . '/deploy'
         );
 
         // replace last output line with a green checkmark
@@ -289,9 +291,7 @@ class NewCommand extends Command
     /* Setup Functions */
     protected function installLaradock(InputInterface $input, OutputInterface $output)
     {
-        $output->writeln('  <bg=blue;fg=black> installLaradock... </> '  . '<fg=blue>' . __FILE__ . ':' . __LINE__ . '</>' . PHP_EOL, OutputInterface::VERBOSITY_VERBOSE);
 
-        $this->timeLineOutput(false, $output, 'Installing Laradock...');
 
         $input->setOption('laradock', $input->getOption('laradock') || confirm(
             label: 'Would you like to install Laradock?',
@@ -302,6 +302,9 @@ class NewCommand extends Command
         if (!$input->getOption('laradock')) {
             return;
         }
+        $output->writeln('  <bg=blue;fg=black> installLaradock... </> '  . '<fg=blue>' . __FILE__ . ':' . __LINE__ . '</>' . PHP_EOL, OutputInterface::VERBOSITY_VERBOSE);
+        $this->timeLineOutput(false, $output, 'Installing Laradock...');
+
 
         $quite = $input->getOption('laradock-quiet') ? '>/dev/null 2>&1' : '';
 
@@ -538,6 +541,9 @@ class NewCommand extends Command
      */
     protected function installBreeze(InputInterface $input, OutputInterface $output, string $directory)
     {
+
+        // TODO: GO THROUGH THIS FUNCTION AND MAKE SURE IT WORKS
+
         $output->writeln('  <bg=blue;fg=black> installBreeze... </> '  . '<fg=blue>' . __FILE__ . ':' . __LINE__ . '</>' . PHP_EOL, OutputInterface::VERBOSITY_VERBOSE);
 
         // breese stack needs to be set
@@ -547,13 +553,13 @@ class NewCommand extends Command
                 'livewire' => 'Livewire',
                 'inertia' => 'Inertia',
             ],
-            default: 'livewire'
+            default: null
         ));
 
+        $this->timeLineOutput(false, $output, 'Installing Breeze...');
 
         $commands = array_filter([
-            'composer require laravel/breeze --dev',
-
+            "composer require laravel/breeze --dev",
             trim(sprintf(
                 $this->phpBinary() . ' artisan breeze:install %s %s %s %s',
                 $input->getOption('stack'),
@@ -563,7 +569,11 @@ class NewCommand extends Command
             )),
         ]);
 
-        $this->runCommands($commands, $input, $output, workingPath: $directory);
+        $process = $this->runCommands($commands, $input, $output, workingPath: $directory);
+
+        $process->isSuccessful() ?
+            $this->timeLineOutput(true, $output, 'Installing Breeze...',  "✅ done") :
+            $this->timeLineOutput(true, $output, 'Installing Breeze...',  "❌ failed");
     }
 
 
@@ -751,10 +761,6 @@ class NewCommand extends Command
         return '';
     }
 
-    protected function getComposerQuietOption()
-    {
-        return $this->composer->getQuietOption();
-    }
 
     protected function findComposer()
     {
