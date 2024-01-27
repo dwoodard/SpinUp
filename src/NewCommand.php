@@ -383,12 +383,9 @@ class NewCommand extends Command
     | the status of the setup, while also removing the previous
     |
     */
-    function timeLineOutput(
-        $eraseLastLine = false,
-        $output,
-        $message,
-        $status = 'in progress'
-    ) {
+    function timeLineOutput($eraseLastLine, $output, $message = "Installing...", $status = 'in progress')
+    {
+
         if ($eraseLastLine) {
             // move cursor up and erase line
             $output->write("\033[1A"); // Move up
@@ -524,22 +521,12 @@ class NewCommand extends Command
 
         $output->writeln('  <bg=blue;fg=black> installBreeze... </> '  . '<fg=blue>' . __FILE__ . ':' . __LINE__ . '</>' . PHP_EOL, OutputInterface::VERBOSITY_VERBOSE);
 
-        // breese stack needs to be set
-        $input->setOption('stack', $input->getOption('stack') ?: select(
-            label: 'Which stack would you like to use?',
-            options: [
-                'livewire' => 'Livewire',
-                'inertia' => 'Inertia',
-            ],
-            default: null
-        ));
-
         $this->timeLineOutput(false, $output, 'Installing Breeze...');
 
         $commands = array_filter([
             "composer require laravel/breeze --dev  >/dev/null 2>&1",
             trim(sprintf(
-                $this->phpBinary() . ' artisan breeze:install vue --dark %s %s',
+                $this->phpBinary() . ' artisan breeze:install vue --dark %s %s >/dev/null 2>&1',
                 $input->getOption('pest') ? '--pest' : '',
                 $input->getOption('ssr') ? '--ssr' : '',
             ))
