@@ -78,11 +78,12 @@ if [ ${1:-1} == 'build' ]; then
       phpmyadmin
     cd ..
 
-
-    echo 'Website: http://localhost'
-    echo 'Phpmyadmin: http://localhost:8081 root:root'
-    echo 'Redis: http://localhost:9987 laradock:laradock'
-    echo 'Mailhog: http://localhost:8025/'
+    echo '--------------------------------------------------------'
+    echo '|  Website:    http://localhost                        |'
+    echo '|  Phpmyadmin: http://localhost:8081 root:root         |'
+    echo '|  Redis:      http://localhost:9987 laradock:laradock |'
+    echo '|  Mailhog:    http://localhost:8025/                  |'
+    echo '--------------------------------------------------------'
   fi
 
 
