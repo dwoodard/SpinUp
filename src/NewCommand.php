@@ -265,6 +265,15 @@ class NewCommand extends Command
         $this->installFeatures($input, $output);
 
 
+        /*
+        |--------------------------------------------------------------------------
+        | Seeders
+        |--------------------------------------------------------------------------
+        |
+        | Commonly used seeders for the project
+        */
+        // $this->copySeeders($input, $output);
+
         $this->runProject($input, $output);
 
 
@@ -433,7 +442,7 @@ class NewCommand extends Command
     | the status of the setup, while also removing the previous
     |
     */
-    function timeLineOutput($eraseLastLine, $output, $message = "Installing...", $status = 'in progress')
+    private function timeLineOutput($eraseLastLine, $output, $message = "Installing...", $status = 'in progress')
     {
 
         if ($eraseLastLine) {
@@ -537,39 +546,63 @@ class NewCommand extends Command
             $this->directory . '/resources/views/app.blade.php',
         );
 
-        $process = $this->runCommands($commands, $input, $output, workingPath: $this->directory);
+        $this->runCommands($commands, $input, $output, workingPath: $this->directory);
 
-        $process->isSuccessful() ?
-            $this->timeLineOutput(true, $output, "Installing Laravel PWA...",  "✅ done") :
-            $this->timeLineOutput(true, $output, "Installing Laravel PWA...",  "❌ failed");
+        $this->timeLineOutput(true, $output, "Installing Laravel PWA...",  "✅ done");
     }
+
     private function installLaravelSchemalessAttributes(InputInterface $input, OutputInterface $output)
     {
         $this->timeLineOutput(true, $output, "Installing Laravel PWA...");
         $quite = ">/dev/null 2>&1";
         // composer require spatie/laravel-schemaless-attributes
         $commands = array_filter([
+            // Add the package to the project
             "composer require spatie/laravel-schemaless-attributes --prefer-dist $quite",
-            $output->writeln('adding migration for schemaless attributes for users'),
-            // 2024_01_01_000001_add_schemaless_attributes_column_to_users_table.php
+            // Add migration to add schemaless_attributes column to users table
             $this->replaceFile(
                 'database/migrations/2024_01_01_000001_add_schemaless_attributes_column_to_users_table.php',
                 $this->directory . '/database/migrations/2024_01_01_000001_add_schemaless_attributes_column_to_users_table.php',
-            ), 
+            ),
+
+            // Add the HasSchemalessAttributes trait to the User model
+            $this->replaceInFile(
+                'use Laravel\Sanctum\HasApiTokens;',
+                'use Laravel\Sanctum\HasApiTokens;' . PHP_EOL .
+                    'use Spatie\\SchemalessAttributes\\Casts\\SchemalessAttributes;',
+                $this->directory . '/app/Models/User.php',
+            ),
+
+            // Add casts SchemalessAttributes for settings
+            $this->replaceInFile(
+                'use HasApiTokens, HasFactory, Notifiable',
+                'use HasApiTokens, HasFactory, Notifiable' . PHP_EOL .
+                    '    public $casts = [ \'settings\' => SchemalessAttributes::class ];',
+                $this->directory . '/app/Models/User.php',
+            ),
+
+            $this->replaceInFile(
+                [
+                    "protected \$casts = [\n        'email_verified_at' => 'datetime',\n        'password' => 'hashed',\n    ];",
+                    "public function scopeWithExtraAttributes(): Builder\n    {\n        return \$this->extra_attributes->modelScope();\n    }",
+                ],
+                [
+                    "protected \$casts = [\n        'email_verified_at' => 'datetime',\n        'password' => 'hashed',\n        'settings' => SchemalessAttributes::class\n    ];",
+                    "public function scopeWithExtraAttributes(): Builder\n    {\n        return \$this->extra_attributes->modelScope();\n    }\n",
+                ],
+                $this->directory . '/app/Models/User.php'
+            )
         ]);
 
-        $process = $this->runCommands($commands, $input, $output, workingPath: $this->directory);
+        $this->runCommands($commands, $input, $output, workingPath: $this->directory);
 
         $this->timeLineOutput(true, $output, "Installing Laravel Schemaless Attributes...",  "✅ done");
     }
+
     private function installLaravelCashier(InputInterface $input, OutputInterface $output)
     {
         $this->timeLineOutput(true, $output, "Installing Laravel Cashier...",  "✅ done");
     }
-
-
-
-
 
 
 
