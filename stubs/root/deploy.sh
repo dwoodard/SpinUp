@@ -8,7 +8,6 @@ if [ ${1:-1} == 'down' ]; then
   exit 0
 fi
 
-
 export COMPOSER_ALLOW_SUPERUSER=1
 
 
@@ -112,10 +111,9 @@ if [ ${1:-1} == 'fresh' ]; then
   docker exec -it laradock-workspace-1 sh -c "php artisan migrate:fresh"
 else
 
-# check if mysql is running
-wait_time=0
 
 # check if mysql is running
+wait_time=0
 while ! docker exec -it laradock-mysql-1 sh -c 'mysqladmin ping --silent'; do
     tput cuu1 && tput el
     echo 'waiting for mysql to start...' $wait_time
