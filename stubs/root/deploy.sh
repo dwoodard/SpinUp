@@ -117,7 +117,7 @@ wait_time=0
 while ! docker exec -it laradock-mysql-1 sh -c 'mysqladmin ping --silent'; do
     tput cuu1 && tput el
     echo 'waiting for mysql to start...' $wait_time
-    ((wait_time++)) # (( )) is arithmetic expansion
+    ((wait_time++))
     sleep 1
 done
 
