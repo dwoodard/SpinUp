@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 # Example useage: [root of project] ./deploy.sh
 
-
 if [ ${1:-1} == 'down' ]; then
   cd laradock || exit
   docker-compose down
@@ -60,10 +59,6 @@ else
 fi
 
 
-
-
-
-
 if [ ${1:-1} == 'build' ]; then
     cd laradock || exit
     docker-compose build \
@@ -112,11 +107,20 @@ else
   echo 'npm was installed'
 fi
 
-#run migrations
+# run migrations
 if [ ${1:-1} == 'fresh' ]; then
   docker exec -it laradock-workspace-1 sh -c "php artisan migrate:fresh"
 else
-  docker exec -it laradock-workspace-1 sh -c "php artisan migrate"
+
+# check if mysql is running
+while ! docker exec -it laradock-mysql-1 sh -c 'mysqladmin ping --silent'; do
+    echo 'waiting for mysql to start...'
+    sleep 1
+done
+
+# once mysql is running, wait 5 more seconds
+sleep 5
+docker exec -it laradock-workspace-1 sh -c "php artisan migrate"
 fi
 
 $SHELL # Open a new shell to run the application

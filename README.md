@@ -11,7 +11,7 @@ To install Laravel using the Laravel Installer, follow these steps:
    You can install the Laravel Installer globally on your system by running the following command in your terminal:
 
    ```bash
-   composer global require dwoodard/laravel_installer:@dev
+   composer global require dwoodard/spinup:@dev
    ```
  
 ## Introduction

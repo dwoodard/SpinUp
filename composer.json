@@ -4,10 +4,7 @@
   "keywords": ["laravel"],
   "license": "MIT",
   "authors": [
-      {
-        "name": "Dustin Woodard",
-        "email": "dustin.woodard@gmail.com"
-  }
+      { "name": "Dustin Woodard", "email": "dustin.woodard@gmail.com" }
   ],
   "require": {
       "php": "^8.1",
