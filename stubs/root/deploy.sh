@@ -113,13 +113,25 @@ if [ ${1:-1} == 'fresh' ]; then
 else
 
 # check if mysql is running
+wait_time=0
+
+# check if mysql is running
 while ! docker exec -it laradock-mysql-1 sh -c 'mysqladmin ping --silent'; do
-    echo 'waiting for mysql to start...'
+    tput cuu1 && tput el
+    echo 'waiting for mysql to start...' $wait_time
+    ((wait_time++)) # (( )) is arithmetic expansion
     sleep 1
 done
 
-# once mysql is running, wait 5 more seconds
-sleep 5
+DB_DATABASE=$(grep DB_DATABASE .env | cut -d '=' -f2-)
+wait_time=0
+while ! docker exec -it laradock-mysql-1 sh -c "mysql -u root -proot -e \"use $DB_DATABASE;\" > /dev/null 2>&1"; do
+    tput cuu1 && tput el
+    echo 'waiting for mysql migration to complete...' $wait_time
+    ((wait_time++))
+    sleep 1
+done
+
 docker exec -it laradock-workspace-1 sh -c "php artisan migrate"
 fi
 
