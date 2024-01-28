@@ -537,12 +537,6 @@ class NewCommand extends Command
             $this->directory . '/resources/views/app.blade.php',
         );
 
-
-
-
-
-
-
         $process = $this->runCommands($commands, $input, $output, workingPath: $this->directory);
 
         $process->isSuccessful() ?
@@ -551,6 +545,21 @@ class NewCommand extends Command
     }
     private function installLaravelSchemalessAttributes(InputInterface $input, OutputInterface $output)
     {
+        $this->timeLineOutput(true, $output, "Installing Laravel PWA...");
+        $quite = ">/dev/null 2>&1";
+        // composer require spatie/laravel-schemaless-attributes
+        $commands = array_filter([
+            "composer require spatie/laravel-schemaless-attributes --prefer-dist $quite",
+            $output->writeln('adding migration for schemaless attributes for users'),
+            // 2024_01_01_000001_add_schemaless_attributes_column_to_users_table.php
+            $this->replaceFile(
+                'database/migrations/2024_01_01_000001_add_schemaless_attributes_column_to_users_table.php',
+                $this->directory . '/database/migrations/2024_01_01_000001_add_schemaless_attributes_column_to_users_table.php',
+            ), 
+        ]);
+
+        $process = $this->runCommands($commands, $input, $output, workingPath: $this->directory);
+
         $this->timeLineOutput(true, $output, "Installing Laravel Schemaless Attributes...",  "✅ done");
     }
     private function installLaravelCashier(InputInterface $input, OutputInterface $output)
