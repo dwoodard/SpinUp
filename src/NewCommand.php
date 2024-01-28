@@ -20,6 +20,7 @@ use function Laravel\Prompts\confirm;
 use function Laravel\Prompts\multiselect;
 use function Laravel\Prompts\select;
 use function Laravel\Prompts\text;
+use function Laravel\Prompts\progress;
 
 class NewCommand extends Command
 {
@@ -34,6 +35,11 @@ class NewCommand extends Command
 
     private $name;
     private $directory;
+    private $features = [
+        'laravel-pwa',
+        'laravel-schemaless-attributes',
+        'laravel-cashier'
+    ];
 
 
     public function __construct()
@@ -52,7 +58,8 @@ class NewCommand extends Command
             ->setName('new')
             ->setDescription('Create a new Laravel application')
             ->addArgument('name', InputArgument::REQUIRED)
-            ->addOption('pest', null, InputOption::VALUE_NONE, 'Installs the Pest testing framework')
+
+
             ->addOption('force', 'f', InputOption::VALUE_NONE, 'Forces install even if the directory already exists')
             ->addOption('dev', null, InputOption::VALUE_NONE, 'Installs the latest "development" release')
             ->addOption('laravel-quiet', null, InputOption::VALUE_OPTIONAL, 'Dont show any Laravel Install', true)
@@ -76,8 +83,7 @@ class NewCommand extends Command
             ->addOption('laravel-medialibrary', null, InputOption::VALUE_NONE, 'Installs the Laravel Medialibrary scaffolding (in project)')
 
             // componets
-            ->addOption('features', null, InputOption::VALUE_OPTIONAL | InputOption::VALUE_IS_ARRAY, 'Toggle components to install', [])
-
+            ->addOption('features', null, InputOption::VALUE_OPTIONAL | InputOption::VALUE_IS_ARRAY, 'Toggle features to install')
 
             //;
         ;
@@ -99,6 +105,12 @@ class NewCommand extends Command
     {
         parent::interact($input, $output);
 
+
+
+
+
+
+
         $this->configurePrompts($input, $output);
 
         $output->write(
@@ -114,10 +126,8 @@ class NewCommand extends Command
                 . ($input->getArgument('name') ? ' - Name: <options=bold>' . $input->getArgument('name') . '</>' . PHP_EOL : '')
                 . ($input->getArgument('name') ? ' - Project directory: <options=bold>' . getcwd() . '/' . $input->getArgument('name') . '</>' . PHP_EOL : '')
                 . ($input->getOption('laradock') ? ' - Laradock: <options=bold>Yes</>' . PHP_EOL : '')
-                . ($input->getOption('pest') ? ' - Pest: <options=bold>Yes</>' . PHP_EOL : '')
                 . ($input->getOption('force') ? ' - Force Delete Project: <options=bold>Yes</>' . PHP_EOL : '')
-                . ($input->getOption('features') ? ' - Toggle Features: <options=bold>' . implode(', ', $input->getOption('features')) . '</>' . PHP_EOL : '')
-
+                . (!$input->getOption('features') ? ' - Features: <options=bold>' . collect($this->features) . '</>' . PHP_EOL : '')
                 . PHP_EOL
                 . PHP_EOL
         );
@@ -134,36 +144,15 @@ class NewCommand extends Command
             ));
         }
 
-
-
-        // if features is passed assume we are asking what features to install, otherwise all features are installed
         if ($input->getOption('features')) {
-            $features = collect([
-                'laravelpwa' => [
-                    "install" => true,
-                    "label" => 'Laravel PWA',
-                    "description" => 'Laravel PWA',
-                ],
-                'laravel-schemaless-attributes' => [
-                    "install" => false,
-                    "label" => 'Laravel Schemaless Attributes',
-                    "description" => 'Laravel Schemaless Attributes',
-
-                ],
-                'laravel-cashier' => [
-                    "install" => false,
-                    "label" => 'Laravel Cashier',
-                    "description" => 'Laravel Cashier (Stripe)',
-                ]
-            ]);
-
-
 
             $input->setOption('features', multiselect(
-                label: 'Toggle Features',
-                options: $features->map(fn ($feature) => $feature['label'])->toArray(),
-                default: $features->filter(fn ($feature) => $feature['install'])->keys(),
+                label: 'Which features would you like to install?',
+                options: $this->features,
+                default: $this->features
             ));
+        } else {
+            $input->setOption('features', $this->features);
         }
     }
 
@@ -281,8 +270,10 @@ class NewCommand extends Command
         */
         $this->installFeatures($input, $output);
 
-        // when this script is done, we want be in the project directory
-        chdir($this->directory);
+
+        $this->runProject($input, $output);
+
+
 
         return 0;
     }
@@ -415,6 +406,13 @@ class NewCommand extends Command
         );
     }
 
+    private function runProject(InputInterface $input, OutputInterface $output)
+    {
+        $output->writeln('<bg=green;fg=green>       Run Project       </> ');
+        $output->writeln('');
+        $output->writeln("cd $this->directory  && ./deploy.sh");
+    }
+
     /* Setup Functions END*/
 
 
@@ -456,8 +454,7 @@ class NewCommand extends Command
         $commands = array_filter([
             "composer require laravel/breeze --dev  >/dev/null 2>&1",
             trim(sprintf(
-                $this->phpBinary() . ' artisan breeze:install vue --dark %s %s >/dev/null 2>&1',
-                $input->getOption('pest') ? '--pest' : '',
+                $this->phpBinary() . ' artisan breeze:install vue --dark %s >/dev/null 2>&1',
                 $input->getOption('ssr') ? '--ssr' : '',
             ))
         ]);
@@ -505,7 +502,7 @@ class NewCommand extends Command
         $this->timeLineOutput(false, $output, "Installing $feature...");
 
         switch ($feature) {
-            case 'laravelpwa':
+            case 'laravel-pwa':
                 $this->installLaravelPWA($input, $output);
                 break;
             case 'laravel-schemaless-attributes':
@@ -565,33 +562,7 @@ class NewCommand extends Command
 
 
 
-    protected function installPest(string $directory, InputInterface $input, OutputInterface $output)
-    {
-        if (
-            $this->removeComposerPackages(['phpunit/phpunit'], $output, true)
-            && $this->requireComposerPackages(['pestphp/pest:^2.0', 'pestphp/pest-plugin-laravel:^2.0'], $output, true)
-        ) {
-            $commands = array_filter([
-                $this->phpBinary() . ' ./vendor/bin/pest --init',
-            ]);
 
-            $this->runCommands($commands, $input, $output, workingPath: $directory, env: [
-                'PEST_NO_SUPPORT' => 'true',
-            ]);
-
-            $this->replaceFile(
-                'pest/Feature.php',
-                $directory . '/tests/Feature/ExampleTest.php',
-            );
-
-            $this->replaceFile(
-                'pest/Unit.php',
-                $directory . '/tests/Unit/ExampleTest.php',
-            );
-
-            $this->commitChanges('Install Pest', $directory, $input, $output);
-        }
-    }
 
 
 
@@ -669,17 +640,9 @@ class NewCommand extends Command
         }
     }
 
-    protected function generateAppUrl($name)
-    {
-        $hostname = mb_strtolower($name) . '.test';
 
-        return $this->canResolveHostname($hostname) ? 'http://' . $hostname : 'http://localhost';
-    }
 
-    protected function canResolveHostname($hostname)
-    {
-        return gethostbyname($hostname . '.') !== $hostname . '.';
-    }
+
 
     protected function getVersion(InputInterface $input)
     {
@@ -691,10 +654,7 @@ class NewCommand extends Command
     }
 
 
-    protected function findComposer()
-    {
-        return implode(' ', $this->composer->findComposer());
-    }
+
 
     protected function phpBinary()
     {
@@ -800,94 +760,4 @@ class NewCommand extends Command
         $filesystem = new Filesystem();
         $filesystem->copy($source, $destination);
     }
-
-
-
-    // for reference
-    // protected function EXECUTE_MASTER(InputInterface $input, OutputInterface $output): int
-    // {
-    //     $this->validateStackOption($input);
-
-    //     $name = $input->getArgument('name');
-
-    //     $directory = $name !== '.' ? getcwd() . '/' . $name : '.';
-
-    //     $this->composer = new Composer(new Filesystem(), $directory);
-
-    //     $version = $this->getVersion($input);
-
-    //     if (!$input->getOption('force')) {
-    //         $this->verifyApplicationDoesntExist($directory);
-    //     }
-
-    //     if ($input->getOption('force') && $directory === '.') {
-    //         throw new RuntimeException('Cannot use --force option when using current directory for installation!');
-    //     }
-
-    //     $composer = $this->findComposer();
-
-    //     $commands = [
-    //         $composer . " create-project laravel/laravel \"$directory\" $version --remove-vcs --prefer-dist",
-    //     ];
-
-    //     if ($directory != '.' && $input->getOption('force')) {
-    //         if (PHP_OS_FAMILY == 'Windows') {
-    //             array_unshift($commands, "(if exist \"$directory\" rd /s /q \"$directory\")");
-    //         } else {
-    //             array_unshift($commands, "rm -rf \"$directory\"");
-    //         }
-    //     }
-
-    //     if (PHP_OS_FAMILY != 'Windows') {
-    //         $commands[] = "chmod 755 \"$directory/artisan\"";
-    //     }
-
-    //     if (($process = $this->runCommands($commands, $input, $output))->isSuccessful()) {
-    //         if ($name !== '.') {
-    //             $this->replaceInFile(
-    //                 'APP_URL=http://localhost',
-    //                 'APP_URL=' . $this->generateAppUrl($name),
-    //                 $directory . '/.env'
-    //             );
-
-    //             [$database, $migrate] = $this->promptForDatabaseOptions($directory, $input);
-
-    //             $this->configureDefaultDatabaseConnection($directory, $database, $name, $migrate);
-
-    //             if ($migrate) {
-    //                 $this->runCommands([
-    //                     $this->phpBinary() . ' artisan migrate',
-    //                 ], $input, $output, workingPath: $directory);
-    //             }
-    //         }
-
-    //         if ($input->getOption('git') || $input->getOption('github') !== false) {
-    //             $this->createRepository($directory, $input, $output);
-    //         }
-
-    //         if ($input->getOption('breeze')) {
-    //             $this->installBreeze($directory, $input, $output);
-    //         } elseif ($input->getOption('jet')) {
-    //             $this->installJetstream($directory, $input, $output);
-    //         } elseif ($input->getOption('pest')) {
-    //             $this->installPest($directory, $input, $output);
-    //         }
-
-    //         if ($input->getOption('github') !== false) {
-    //             $this->pushToGitHub($name, $directory, $input, $output);
-    //             $output->writeln('');
-    //         }
-
-    //         $output->writeln("  <bg=blue;fg=white> INFO </> Application ready in <options=bold>[{$name}]</>. You can start your local development using:" . PHP_EOL);
-
-    //         $output->writeln('<fg=gray>➜</> <options=bold>cd ' . $name . '</>');
-    //         $output->writeln('<fg=gray>➜</> <options=bold>php artisan serve</>');
-    //         $output->writeln('');
-
-    //         $output->writeln('  New to Laravel? Check out our <href=https://bootcamp.laravel.com>bootcamp</> and <href=https://laravel.com/docs/installation#next-steps>documentation</>. <options=bold>Build something amazing!</>');
-    //         $output->writeln('');
-    //     }
-
-    //     return $process->getExitCode();
-    // }
 }
