@@ -572,15 +572,6 @@ class NewCommand extends Command
                     'use Spatie\\SchemalessAttributes\\Casts\\SchemalessAttributes;',
                 $this->directory . '/app/Models/User.php',
             ),
-
-            // Add casts SchemalessAttributes for settings
-            $this->replaceInFile(
-                'use HasApiTokens, HasFactory, Notifiable',
-                'use HasApiTokens, HasFactory, Notifiable' . PHP_EOL .
-                    '    public $casts = [ \'settings\' => SchemalessAttributes::class ];',
-                $this->directory . '/app/Models/User.php',
-            ),
-
             $this->replaceInFile(
                 [
                     "protected \$casts = [\n        'email_verified_at' => 'datetime',\n        'password' => 'hashed',\n    ];",
