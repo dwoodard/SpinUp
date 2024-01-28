@@ -358,6 +358,7 @@ class NewCommand extends Command
         if (!$input->getOption('laradock')) {
             return;
         }
+
         $output->writeln('  <bg=blue;fg=black> installLaradock... </> '  . '<fg=blue>' . __FILE__ . ':' . __LINE__ . '</>' . PHP_EOL, OutputInterface::VERBOSITY_VERBOSE);
         $this->timeLineOutput(false, $output, 'Installing Laradock...');
 
@@ -402,12 +403,14 @@ class NewCommand extends Command
 
     private function runProject(InputInterface $input, OutputInterface $output)
     {
-        echo PHP_EOL;
-        $output->writeln('<bg=green;fg=green>       Run Project       </> ');
-        echo PHP_EOL;
-        $output->writeln("cd $this->directory  && ./deploy.sh");
-        echo PHP_EOL;
-        echo PHP_EOL;
+
+        $output->writeln(PHP_EOL . '<bg=green>       Run Project       </> ' .  PHP_EOL);
+
+        $output->writeln(
+            PHP_EOL .
+                "cd $this->directory  && ./deploy.sh"
+                . PHP_EOL
+        );
     }
 
     /* Setup Functions END*/
