@@ -105,12 +105,6 @@ class NewCommand extends Command
     {
         parent::interact($input, $output);
 
-
-
-
-
-
-
         $this->configurePrompts($input, $output);
 
         $output->write(
@@ -408,9 +402,12 @@ class NewCommand extends Command
 
     private function runProject(InputInterface $input, OutputInterface $output)
     {
+        echo PHP_EOL;
         $output->writeln('<bg=green;fg=green>       Run Project       </> ');
-        $output->writeln('');
+        echo PHP_EOL;
         $output->writeln("cd $this->directory  && ./deploy.sh");
+        echo PHP_EOL;
+        echo PHP_EOL;
     }
 
     /* Setup Functions END*/
