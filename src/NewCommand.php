@@ -35,9 +35,14 @@ class NewCommand extends Command
 
     private $name;
     private $directory;
+
+    // Features must follow the naming convention of FEATURE_[NAME_OF_FEATURE]
     private $features = [
-        'laravel-pwa',
-        'laravel-schemaless-attributes',
+        'FEATURE_LARAVEL_PWA',
+        'FEATURE_LARAVEL_SCHEMALESS_ATTRIBUTES',
+        'FEATURE_LARAVEL_CASHIER',
+        'FEATURE_LARAVEL_PERMISSION',
+        'FEATURE_HEADLESS_UI',
     ];
 
 
@@ -78,17 +83,23 @@ class NewCommand extends Command
             //composer packages to add
             ->addOption('all', null, InputOption::VALUE_NONE, 'Installs all the Composer packages')
 
-            // composer packages
-            ->addOption('laravelpwa', null, InputOption::VALUE_NONE, 'Installs the Laravel PWA scaffolding (in project)')
-            ->addOption('laravel-schemaless-attributes', null, InputOption::VALUE_NONE, 'Installs the Laravel Schemaless Attributes scaffolding (in project)')
-            ->addOption('laravel-permission', null, InputOption::VALUE_NONE, 'Installs the Laravel Permission scaffolding (in project)')
-            ->addOption('laravel-medialibrary', null, InputOption::VALUE_NONE, 'Installs the Laravel Medialibrary scaffolding (in project)')
+
 
             // componets
             ->addOption('features', null, InputOption::VALUE_OPTIONAL | InputOption::VALUE_IS_ARRAY, 'Toggle features to install')
 
             //;
         ;
+
+        // add features as options by looping through the features array
+        foreach ($this->features as $feature) {
+            $this->addOption(
+                $feature,
+                null,
+                InputOption::VALUE_NONE,
+                'Installs the ' . $feature . ' feature'
+            );
+        }
     }
 
 
@@ -107,7 +118,7 @@ class NewCommand extends Command
     {
         parent::interact($input, $output);
 
-        $this->configurePrompts($input, $output);
+        $this->configurePrompts($input, $output); //this configures the prompts to use the input and output
 
         $output->write(
             //SpinUp logo
@@ -123,7 +134,9 @@ class NewCommand extends Command
                 . ($input->getArgument('name') ? ' - Project directory: <options=bold>' . getcwd() . '/' . $input->getArgument('name') . '</>' . PHP_EOL : '')
                 . ($input->getOption('laradock') ? ' - Laradock: <options=bold>Yes</>' . PHP_EOL : '')
                 . ($input->getOption('force') ? ' - Force Delete Project: <options=bold>Yes</>' . PHP_EOL : '')
-                . (!$input->getOption('features') ? ' - Features: <options=bold>' . collect($this->features) . '</>' . PHP_EOL : '')
+
+
+
                 . PHP_EOL
                 . PHP_EOL
         );
@@ -205,75 +218,12 @@ class NewCommand extends Command
         */
 
         $this->installLaravel($input, $output);
-
-
-        /* anything below here should be optional and should be able to be turned off */
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | Install Laradock
-        |--------------------------------------------------------------------------
-        | [Optional] ask if they want to install Laradock, and if so, install it.
-        |
-        | This section installs Laradock, a collection of Docker images
-        | used to run Laravel projects. It also sets up the .envs for
-        | both Laravel and Laradock.
-        |
-        | [Docs]   https://laradock.io/
-        |
-        */
-        $this->installLaradock($input, $output);
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | Install Breeze
-        |--------------------------------------------------------------------------
-        | Laravel Breeze is a minimal, simple implementation of all of
-        | Laravel's authentication features, including login,
-        | registration, password reset, email verification, and
-        | password confirmation.
-        |
-        | [Docs]   https://laravel.com/docs/starter-kits#laravel-breeze
-        */
         $this->installBreeze($input, $output, $this->directory);
-
-        /*
-        |--------------------------------------------------------------------------
-        | Stubs
-        |--------------------------------------------------------------------------
-        | Copy stub files from the stubs directory to the project directory.
-        */
+        /* anything below here should be optional and should be able to be turned off */
+        $this->installLaradock($input, $output);
         $this->installStubs($input, $output);
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | Install Deploy Script
-        |--------------------------------------------------------------------------
-        | This script automates the setup and management of a Laravel web
-        | application within a Docker environment. It checks and
-        | installs dependencies, manages database migrations,
-        | and starts or builds Docker containers for local development.
-        |
-        | stubs/root/deploy.sh
-        */
-        $this->installDeployScript($input, $output);
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | Install Componets/Template Packages
-        |--------------------------------------------------------------------------
-        | Using Breeze as a base, we can install other packages that
-        | are commonly used in Laravel projects. These include
-        | Laravel PWA, Laravel Schemaless Attributes,
-        */
-
+        // $this->installDeployScript($input, $output);
         $this->installTemplates($input, $output);
-
-
         // $this->installFeatures($input, $output);
 
 
@@ -331,6 +281,69 @@ class NewCommand extends Command
         $this->timeLineOutput(true, $output, 'Installing Laravel...',  "✅ done");
     }
 
+    /*
+        |--------------------------------------------------------------------------
+        | Stubs
+        |--------------------------------------------------------------------------
+        | Copy stub files from the stubs directory to the project directory.
+        */
+    private function installStubs(InputInterface $input, OutputInterface $output)
+    {
+        /*
+            using a custom function that reads each file in the stubs directory
+            looking for the feature flag, if true/false, it will include/exclude
+            that part of the stub file.
+        */
+
+        // list all features
+        $features = $input->getOption('features');
+
+        $this->debug('Install Stubs...', $input, $output);
+
+        $this->timeLineOutput(false, $output, 'Installing Stubs...');
+
+        $stubsDirectory = dirname(__DIR__) . '/stubs';
+        $projectDirectory = $this->directory;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    /*
+    --------------------------------------------------------------------------
+    */
+
+
+
+
+
+
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Install Deploy Script
+    |--------------------------------------------------------------------------
+    | This script automates the setup and management of a Laravel web
+    | application within a Docker environment. It checks and
+    | installs dependencies, manages database migrations,
+    | and starts or builds Docker containers for local development.
+    |
+    | stubs/root/deploy.sh
+    */
     protected function installDeployScript(InputInterface $input, OutputInterface $output)
     {
         $this->debug('Install Deploy Script...', $input, $output);
@@ -355,14 +368,17 @@ class NewCommand extends Command
 
     /*
     |--------------------------------------------------------------------------
-    | Setup Functions
+    | Install Laradock
     |--------------------------------------------------------------------------
-    | Below are functions that are used to setup the project. They are
-    | called from the main execute function, these should be modular
-    | to allow for easy editing and adding of new features.
+    | [Optional] ask if they want to install Laradock, and if so, install it.
+    |
+    | This section installs Laradock, a collection of Docker images
+    | used to run Laravel projects. It also sets up the .envs for
+    | both Laravel and Laradock.
+    |
+    | [Docs]   https://laradock.io/
     |
     */
-
     protected function installLaradock(InputInterface $input, OutputInterface $output)
     {
         $input->setOption('laradock', $input->getOption('laradock') || confirm(
@@ -418,6 +434,17 @@ class NewCommand extends Command
         );
     }
 
+    /*
+    |--------------------------------------------------------------------------
+    | Install Breeze
+    |--------------------------------------------------------------------------
+    | Laravel Breeze is a minimal, simple implementation of all of
+    | Laravel's authentication features, including login,
+    | registration, password reset, email verification, and
+    | password confirmation.
+    |
+    | [Docs]   https://laravel.com/docs/starter-kits#laravel-breeze
+    */
     protected function installBreeze(InputInterface $input, OutputInterface $output, string $directory)
     {
         $this->debug('Install Breeze...', $input, $output);
@@ -500,16 +527,27 @@ class NewCommand extends Command
     |--------------------------------------------------------------------------
     | INSTALL TEMPLATE
     |--------------------------------------------------------------------------
-      Tailwind CSS, Vue Components, Headless UI, Etc.
 
-      Because we are using Breeze as a base, we'll base the template off of that.
-
-      we'll move dashboard to a set of admin routes, and then we'll have a set of
-        - remove from routes/web.php
-        - copy stubs/routes/admin.php to routes/admin.php
-        - copy stubs/resources/views/admin to resources/views/admin
     */
 
+
+    /*
+    |--------------------------------------------------------------------------
+    | Install Componets/Template Packages
+    |--------------------------------------------------------------------------
+    | Using Breeze as a base, we can install other packages that
+    | are commonly used in Laravel projects. These include
+    | Laravel PWA, Laravel Schemaless Attributes,
+
+    | Tailwind CSS, Vue Components, Headless UI, Etc.
+    |
+    | Because we are using Breeze as a base, we'll base the template off of that.
+    |
+    | we'll move dashboard to a set of admin routes, and then we'll have a set of
+    | - remove from routes/web.php
+    | - copy stubs/routes/admin.php to routes/admin.php
+    | - copy stubs/resources/views/admin to resources/views/admin
+    */
     private function installTemplates(InputInterface $input, OutputInterface $output)
     {
         $this->debug('Install Template...', $input, $output);
@@ -529,6 +567,17 @@ class NewCommand extends Command
     }
 
 
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Setup Functions
+    |--------------------------------------------------------------------------
+    | Below are functions that are used to setup the project. They are
+    | called from the main execute function, these should be modular
+    | to allow for easy editing and adding of new features.
+    |
+    */
     protected function installFeatures(InputInterface $input, OutputInterface $output)
     {
         $this->debug('Install Features...', $input, $output);
