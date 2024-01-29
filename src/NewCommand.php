@@ -632,10 +632,6 @@ class NewCommand extends Command
 
             $commands = array_filter([
                 $this->phpBinary() . ' artisan vendor:publish --provider="LaravelPWA\Providers\LaravelPWAServiceProvider"',
-                /*
-          I need to find the default html file and add @laravelPWA to it
-          zsh: no such file or directory: head
-        */
                 exec('find . -name "app.blade.php" -exec sed -i \'\' \'s+<head>+<head>    @laravelPWA+g\' {} \;')
             ]);
 
