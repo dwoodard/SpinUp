@@ -38,19 +38,6 @@ class NewCommand extends Command
     private $features = [
         'laravel-pwa',
         'laravel-schemaless-attributes',
-
-        // 'laravel-cashier',
-        // 'laravel-medialibrary',
-        //headlessui
-        //livewire
-        //inertia
-        //jetstream
-        //fortify
-        //horizon
-        //scout
-        //telescope
-        //socialite
-
     ];
 
 
@@ -239,6 +226,27 @@ class NewCommand extends Command
         $this->installLaradock($input, $output);
 
 
+        /*
+        |--------------------------------------------------------------------------
+        | Install Breeze
+        |--------------------------------------------------------------------------
+        | Laravel Breeze is a minimal, simple implementation of all of
+        | Laravel's authentication features, including login,
+        | registration, password reset, email verification, and
+        | password confirmation.
+        |
+        | [Docs]   https://laravel.com/docs/starter-kits#laravel-breeze
+        */
+        $this->installBreeze($input, $output, $this->directory);
+
+        /*
+        |--------------------------------------------------------------------------
+        | Stubs
+        |--------------------------------------------------------------------------
+        | Copy stub files from the stubs directory to the project directory.
+        */
+        $this->installStubs($input, $output);
+
 
         /*
         |--------------------------------------------------------------------------
@@ -256,22 +264,6 @@ class NewCommand extends Command
 
         /*
         |--------------------------------------------------------------------------
-        | Install Breeze
-        |--------------------------------------------------------------------------
-        | Laravel Breeze is a minimal, simple implementation of all of
-        | Laravel's authentication features, including login,
-        | registration, password reset, email verification, and
-        | password confirmation.
-        |
-        | [Docs]   https://laravel.com/docs/starter-kits#laravel-breeze
-        */
-        $this->installBreeze($input, $output, $this->directory);
-
-
-
-
-        /*
-        |--------------------------------------------------------------------------
         | Install Componets/Template Packages
         |--------------------------------------------------------------------------
         | Using Breeze as a base, we can install other packages that
@@ -279,10 +271,10 @@ class NewCommand extends Command
         | Laravel PWA, Laravel Schemaless Attributes,
         */
 
-        $this->installTemplate($input, $output);
+        $this->installTemplates($input, $output);
 
 
-        $this->installFeatures($input, $output);
+        // $this->installFeatures($input, $output);
 
 
         /*
@@ -294,7 +286,7 @@ class NewCommand extends Command
         */
         // $this->copySeeders($input, $output);
 
-        $this->runProject($input, $output);
+        $this->ShowHowProjectRuns($input, $output);
 
 
 
@@ -447,7 +439,7 @@ class NewCommand extends Command
             $this->timeLineOutput(true, $output, 'Installing Breeze...',  "❌ failed");
     }
 
-    private function runProject(InputInterface $input, OutputInterface $output)
+    private function ShowHowProjectRuns(InputInterface $input, OutputInterface $output)
     {
 
         $output->writeln(PHP_EOL . '<bg=green>       Run Project       </> ' .  PHP_EOL);
@@ -518,7 +510,7 @@ class NewCommand extends Command
         - copy stubs/resources/views/admin to resources/views/admin
     */
 
-    private function installTemplate(InputInterface $input, OutputInterface $output)
+    private function installTemplates(InputInterface $input, OutputInterface $output)
     {
         $this->debug('Install Template...', $input, $output);
 
@@ -709,10 +701,6 @@ class NewCommand extends Command
             throw new RuntimeException('Application already exists! ' . __FILE__ . ':' . __LINE__);
         }
     }
-
-
-
-
 
     protected function getVersion(InputInterface $input)
     {
