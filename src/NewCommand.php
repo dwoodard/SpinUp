@@ -38,7 +38,19 @@ class NewCommand extends Command
     private $features = [
         'laravel-pwa',
         'laravel-schemaless-attributes',
-        'laravel-cashier'
+
+        // 'laravel-cashier',
+        // 'laravel-medialibrary',
+        //headlessui
+        //livewire
+        //inertia
+        //jetstream
+        //fortify
+        //horizon
+        //scout
+        //telescope
+        //socialite
+
     ];
 
 
@@ -60,6 +72,7 @@ class NewCommand extends Command
             ->addArgument('name', InputArgument::REQUIRED)
 
 
+            //add General
             ->addOption('force', 'f', InputOption::VALUE_NONE, 'Forces install even if the directory already exists')
             ->addOption('dev', null, InputOption::VALUE_NONE, 'Installs the latest "development" release')
             ->addOption('laravel-quiet', null, InputOption::VALUE_OPTIONAL, 'Dont show any Laravel Install', true)
@@ -262,6 +275,10 @@ class NewCommand extends Command
         | are commonly used in Laravel projects. These include
         | Laravel PWA, Laravel Schemaless Attributes,
         */
+
+        // $this->installTemplate($input, $output)
+
+
         $this->installFeatures($input, $output);
 
 
@@ -280,11 +297,6 @@ class NewCommand extends Command
 
         return 0;
     }
-
-
-
-
-
 
     protected function handleIfExsistingProject(InputInterface $input, OutputInterface $output)
     {
@@ -410,50 +422,6 @@ class NewCommand extends Command
         );
     }
 
-    private function runProject(InputInterface $input, OutputInterface $output)
-    {
-
-        $output->writeln(PHP_EOL . '<bg=green>       Run Project       </> ' .  PHP_EOL);
-
-        $output->writeln(
-            PHP_EOL .
-                "cd $this->directory  && ./deploy.sh"
-                . PHP_EOL
-        );
-    }
-
-    /* Setup Functions END*/
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | Helper Functions
-    |--------------------------------------------------------------------------
-    | These functions are used to help with the setup functions above.
-    |
-    */
-
-    /*
-    |--------------------------------------------------------------------------
-    | TimeLine Output
-    |--------------------------------------------------------------------------
-    | While running through the setup, we want show the user what is happening
-    | and if it was successful or not. This function is used to output
-    | the status of the setup, while also removing the previous
-    |
-    */
-    private function timeLineOutput($eraseLastLine, $output, $message = "Installing...", $status = 'in progress')
-    {
-
-        if ($eraseLastLine) {
-            // move cursor up and erase line
-            $output->write("\033[1A"); // Move up
-            $output->write("\033[K"); // Erase line
-        }
-
-        $output->writeln("<bg=green;fg=black> $message </> $status");
-    }
-
     protected function installBreeze(InputInterface $input, OutputInterface $output, string $directory)
     {
         $output->writeln('  <bg=blue;fg=black> installBreeze... </> '  . '<fg=blue>' . __FILE__ . ':' . __LINE__ . '</>' . PHP_EOL, OutputInterface::VERBOSITY_VERBOSE);
@@ -475,13 +443,54 @@ class NewCommand extends Command
             $this->timeLineOutput(true, $output, 'Installing Breeze...',  "❌ failed");
     }
 
+    private function runProject(InputInterface $input, OutputInterface $output)
+    {
+
+        $output->writeln(PHP_EOL . '<bg=green>       Run Project       </> ' .  PHP_EOL);
+
+        $output->writeln(
+            PHP_EOL .
+                "cd $this->directory  && ./deploy.sh"
+                . PHP_EOL
+        );
+    }
+
+    /* Setup Functions END*/
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Helper Functions
+    |--------------------------------------------------------------------------
+    | These functions are used to help with the setup functions above.
+
+
+    |--------------------------------------------------------------------------
+    | TimeLine Output
+    |--------------------------------------------------------------------------
+    | While running through the setup, we want show the user what is happening
+    | and if it was successful or not. This function is used to output
+    | the status of the setup, while also removing the previous
+    |
+    */
+    private function timeLineOutput($eraseLastLine, $output, $message = "Installing...", $status = 'in progress')
+    {
+
+        if ($eraseLastLine) {
+            // move cursor up and erase line
+            $output->write("\033[1A"); // Move up
+            $output->write("\033[K"); // Erase line
+        }
+
+        $output->writeln("<bg=green;fg=black> $message </> $status");
+    }
 
 
     /*
     |--------------------------------------------------------------------------
     | INSTALL FEATURES
     |--------------------------------------------------------------------------
-    | We want to show a list of features that can be installed, and
+    | Show a list of features that can be installed, and
     | allow the user to select which ones they want to install, via multi-select.
     | We can then install the selected features.
     | this function will be responsible for installing the features with a toggled on
@@ -490,6 +499,26 @@ class NewCommand extends Command
     | the components that are toggled on.
     |
     */
+
+    /*
+    |--------------------------------------------------------------------------
+    | INSTALL TEMPLATE
+    |--------------------------------------------------------------------------
+      Tailwind CSS, Vue Components, Headless UI, Etc.
+
+      Install the template, and then replace the default app.blade.php with the
+    */
+
+    private function installTemplate(InputInterface $input, OutputInterface $output)
+    {
+        $output->writeln('  <bg=blue;fg=black> installTemplate... </> '  . '<fg=blue>' . __FILE__ . ':' . __LINE__ . '</>' . PHP_EOL, OutputInterface::VERBOSITY_VERBOSE);
+
+        $this->timeLineOutput(false, $output, 'Installing Template...');
+
+        /*
+            stubs/resources/views/app.blade.php
+         */
+    }
 
 
     protected function installFeatures(InputInterface $input, OutputInterface $output)
@@ -595,10 +624,6 @@ class NewCommand extends Command
         $this->timeLineOutput(true, $output, "Installing Laravel Cashier...",  "✅ done");
     }
 
-
-
-
-
     protected function configureComposerPackages(InputInterface $input, OutputInterface $output)
     {
 
@@ -611,7 +636,7 @@ class NewCommand extends Command
           I need to find the default html file and add @laravelPWA to it
           zsh: no such file or directory: head
         */
-                exec('find . -name "app.blade.php" -exec sed -i \'\' \'s+<head>+<head>@laravelPWA+g\' {} \;')
+                exec('find . -name "app.blade.php" -exec sed -i \'\' \'s+<head>+<head>    @laravelPWA+g\' {} \;')
             ]);
 
             $this->runCommands($commands, $input, $output);
