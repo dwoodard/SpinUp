@@ -77,6 +77,8 @@ class NewCommand extends Command
             ->addOption('dev', null, InputOption::VALUE_NONE, 'Installs the latest "development" release')
             ->addOption('laravel-quiet', null, InputOption::VALUE_OPTIONAL, 'Dont show any Laravel Install', true)
 
+            //debug
+            ->addOption('debug', null, InputOption::VALUE_NONE, 'Debug')
 
             //add laradock
             ->addOption('laradock', null, InputOption::VALUE_NONE, 'Installs the Laradock scaffolding (in project)')
@@ -151,8 +153,9 @@ class NewCommand extends Command
             ));
         }
 
+        // if --features is passed, ask which features they want to install
+        // otherwise, install all features
         if ($input->getOption('features')) {
-
             $input->setOption('features', multiselect(
                 label: 'Which features would you like to install?',
                 options: $this->features,
@@ -173,8 +176,8 @@ class NewCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $output->writeln('  <bg=blue;fg=black> Excuting... </> '  . '<fg=blue>' . __FILE__ . ':' . __LINE__ . '</>' . PHP_EOL, OutputInterface::VERBOSITY_VERBOSE);
 
+        $this->debug('Excuting...', $input, $output);
 
         /*
         |--------------------------------------------------------------------------
@@ -276,7 +279,7 @@ class NewCommand extends Command
         | Laravel PWA, Laravel Schemaless Attributes,
         */
 
-        // $this->installTemplate($input, $output)
+        $this->installTemplate($input, $output);
 
 
         $this->installFeatures($input, $output);
@@ -300,15 +303,15 @@ class NewCommand extends Command
 
     protected function handleIfExsistingProject(InputInterface $input, OutputInterface $output)
     {
-        $output->writeln('  <bg=blue;fg=black> handleIfExsistingProject... </> '  . '<fg=blue>' . __FILE__ . ':' . __LINE__ . '</>' . PHP_EOL, OutputInterface::VERBOSITY_VERBOSE);
+        $this->debug('handleIfExsistingProject...', $input, $output);
 
         //  -f, --force
         // if -f is passed, delete the project if it exists
-
-        // if not -f is passed, ask if they want to delete the project
         if (!$input->getOption('force')) {
-            $this->verifyApplicationDoesntExist($this->directory);
-        } else {
+            $this->verifyApplicationDoesntExist($this->directory, $input, $output);
+        }
+        // if not -f is passed, ask if they want to delete the project
+        else {
             // -f is passed, delete the project if it exists
             $commands = [
                 'rm -rf ' . $this->directory,
@@ -319,7 +322,7 @@ class NewCommand extends Command
 
     protected function installLaravel(InputInterface $input, OutputInterface $output)
     {
-        $output->writeln('  <bg=blue;fg=black> installLaravel... </> '  . '<fg=blue>' . __FILE__ . ':' . __LINE__ . '</>' . PHP_EOL, OutputInterface::VERBOSITY_VERBOSE);
+        $this->debug('Install Laravel...', $input, $output);
 
         $version = $this->getVersion($input);
         $quite = $input->getOption('laravel-quiet') ? '--quiet' : '';
@@ -338,7 +341,7 @@ class NewCommand extends Command
 
     protected function installDeployScript(InputInterface $input, OutputInterface $output)
     {
-        $output->writeln('  <bg=blue;fg=black> installDeployScript... </> '  . '<fg=blue>' . __FILE__ . ':' . __LINE__ . '</>' . PHP_EOL, OutputInterface::VERBOSITY_VERBOSE);
+        $this->debug('Install Deploy Script...', $input, $output);
 
         $this->timeLineOutput(false, $output, 'Installing Deploy Script...');
 
@@ -380,7 +383,8 @@ class NewCommand extends Command
             return;
         }
 
-        $output->writeln('  <bg=blue;fg=black> installLaradock... </> '  . '<fg=blue>' . __FILE__ . ':' . __LINE__ . '</>' . PHP_EOL, OutputInterface::VERBOSITY_VERBOSE);
+        $this->debug('installLaradock...', $input, $output);
+
         $this->timeLineOutput(false, $output, 'Installing Laradock...');
 
         $laravelCommands = array_filter([
@@ -424,7 +428,7 @@ class NewCommand extends Command
 
     protected function installBreeze(InputInterface $input, OutputInterface $output, string $directory)
     {
-        $output->writeln('  <bg=blue;fg=black> installBreeze... </> '  . '<fg=blue>' . __FILE__ . ':' . __LINE__ . '</>' . PHP_EOL, OutputInterface::VERBOSITY_VERBOSE);
+        $this->debug('Install Breeze...', $input, $output);
 
         $this->timeLineOutput(false, $output, 'Installing Breeze...');
 
@@ -506,12 +510,24 @@ class NewCommand extends Command
     |--------------------------------------------------------------------------
       Tailwind CSS, Vue Components, Headless UI, Etc.
 
-      Install the template, and then replace the default app.blade.php with the
+      Because we are using Breeze as a base, we'll base the template off of that.
+
+      we'll move dashboard to a set of admin routes, and then we'll have a set of
+        - remove from routes/web.php
+        - copy stubs/routes/admin.php to routes/admin.php
+        - copy stubs/resources/views/admin to resources/views/admin
     */
 
     private function installTemplate(InputInterface $input, OutputInterface $output)
     {
-        $output->writeln('  <bg=blue;fg=black> installTemplate... </> '  . '<fg=blue>' . __FILE__ . ':' . __LINE__ . '</>' . PHP_EOL, OutputInterface::VERBOSITY_VERBOSE);
+        $this->debug('Install Template...', $input, $output);
+
+        // remove the welcome.blade.php file
+        $commands = [
+            "rm -rf $this->directory/resources/views/welcome.blade.php",
+
+        ];
+        $this->runCommands($commands, $input, $output);
 
         $this->timeLineOutput(false, $output, 'Installing Template...');
 
@@ -523,10 +539,9 @@ class NewCommand extends Command
 
     protected function installFeatures(InputInterface $input, OutputInterface $output)
     {
-        //
-        $output->writeln('  <bg=blue;fg=black> installFeatures... </> '  . '<fg=blue>' . __FILE__ . ':' . __LINE__ . '</>' . PHP_EOL, OutputInterface::VERBOSITY_VERBOSE);
-        $output->writeln('  <bg=blue;fg=black>' . collect($input->getOption('features'))  . PHP_EOL, OutputInterface::VERBOSITY_VERBOSE);
+        $this->debug('Install Features...', $input, $output);
 
+        $output->writeln('  <bg=blue;fg=black>' . collect($input->getOption('features'))  . PHP_EOL, OutputInterface::VERBOSITY_VERBOSE);
 
         // loop through the features and install them
         foreach ($input->getOption('features') as $feature) {
@@ -536,7 +551,8 @@ class NewCommand extends Command
 
     protected function installFeature($feature, InputInterface $input, OutputInterface $output)
     {
-        $output->writeln('  <bg=blue;fg=black> installFeature... </> '  . '<fg=blue>' . __FILE__ . ':' . __LINE__ . '</>' . PHP_EOL, OutputInterface::VERBOSITY_VERBOSE);
+        $this->debug("Install $feature...", $input, $output);
+
         $this->timeLineOutput(false, $output, "Installing $feature...");
 
         switch ($feature) {
@@ -632,7 +648,7 @@ class NewCommand extends Command
 
             $commands = array_filter([
                 $this->phpBinary() . ' artisan vendor:publish --provider="LaravelPWA\Providers\LaravelPWAServiceProvider"',
-                exec('find . -name "app.blade.php" -exec sed -i \'\' \'s+<head>+<head>    @laravelPWA+g\' {} \;')
+                exec('find . -name "app.blade.php" -exec sed -i \'\' \'s+<head>+<head>        @laravelPWA+g\' {} \;')
             ]);
 
             $this->runCommands($commands, $input, $output);
@@ -687,10 +703,10 @@ class NewCommand extends Command
         $this->runCommands($commands, $input, $output, workingPath: $directory, env: ['GIT_TERMINAL_PROMPT' => 0]);
     }
 
-    protected function verifyApplicationDoesntExist($directory)
+    protected function verifyApplicationDoesntExist($directory, InputInterface $input, OutputInterface $output)
     {
         if ((is_dir($directory) || is_file($directory)) && $directory != getcwd()) {
-            throw new RuntimeException('Application already exists!');
+            throw new RuntimeException('Application already exists! ' . __FILE__ . ':' . __LINE__);
         }
     }
 
@@ -813,5 +829,21 @@ class NewCommand extends Command
     {
         $filesystem = new Filesystem();
         $filesystem->copy($source, $destination);
+    }
+
+    private function debug($task, $input, $output)
+    {
+
+        // if get option debug is passed, show debug info
+        if ($input->getOption('debug')) {
+            $output->writeln(
+                "<bg=blue;fg=black>$task</> " .
+                    '<fg=blue>' .
+                    __FILE__ . ':' . __LINE__ .
+                    '</>'
+                    . PHP_EOL,
+                OutputInterface::VERBOSITY_VERBOSE
+            );
+        }
     }
 }
