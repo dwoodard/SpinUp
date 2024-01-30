@@ -194,11 +194,11 @@ class NewCommand extends Command
         $this->composer = new Composer(new Filesystem(), $this->directory);
 
         /*  */
-        // $this->handleIfExsistingProject($input, $output);
-        // $this->installLaravel($input, $output);
-        // $this->installBreeze($input, $output, $this->directory);
-        // /* anything below here should be optional and should be able to be turned off */
-        // $this->installLaradock($input, $output);
+        $this->handleIfExsistingProject($input, $output);
+        $this->installLaravel($input, $output);
+        $this->installBreeze($input, $output, $this->directory);
+        /* anything below here should be optional and should be able to be turned off */
+        $this->installLaradock($input, $output);
         /*  */
 
         $this->installStubs($input, $output);
@@ -371,8 +371,6 @@ class NewCommand extends Command
             fn ($file) => $file->getPathname()
         );
 
-        // echo $files->join(PHP_EOL);
-        // echo PHP_EOL;
 
 
         function processFeatureFlags($contents, $features)
@@ -403,33 +401,36 @@ class NewCommand extends Command
 
         function saveContentToNewDestination($file, $contents, $directory)
         {
-            echo $directory . PHP_EOL;
-            echo $file . PHP_EOL;
-            echo  PHP_EOL;
-            echo dirname(__DIR__);
-            die();
-            /*
-                /Users/dustin/code/spinup/ProjectName
-                /Users/dustin/code/spinup/stubs/database/factories/UserFactory.php
 
-                I want it to set the destination to this:
-                /Users/dustin/code/spinup/ProjectName/database/factories/UserFactory.php
-            */
 
-            $destination = str_replace(dirname(__DIR__) . '/stubs', '', $file);
+            $projectPath = $directory . str_replace('/stubs', '', str_replace(dirname(__DIR__), '', $file));
 
-            // Create the target directory if it doesn't exist
-            if (!file_exists($directory . dirname($destination))) {
-                mkdir($directory . dirname($destination), 0755, true);
+            // a quick check to see if the file is in the root directory
+            // if it is, we'll need to copy it to the project directory
+            // if file is in the root directory, copy it to the project directory
+            if (str_contains($file, '/stubs/root/')) {
+                $projectPath = $directory . '/' . basename($file);
             }
+
+
+
+
+
+            // check if the directory exists for the file
+            // if not, create it
+            if (!file_exists(dirname($projectPath))) {
+                mkdir(dirname($projectPath), 0755, true);
+            }
+
+
 
             // Copy the file to the project directory
-            if (copy($file, $directory . $destination)) {
+            if (copy($file, $projectPath)) {
                 // Set the permissions to 0755
-                chmod($directory . $destination, 0755);
+                chmod($projectPath, 0755);
             }
 
-            return file_exists($directory . $destination);
+            return file_exists($projectPath);
         }
 
 
@@ -1019,13 +1020,6 @@ class NewCommand extends Command
     }
 
 
-
-
-    protected function copyFile(string $source, string $destination)
-    {
-        $filesystem = new Filesystem();
-        $filesystem->copy($source, $destination);
-    }
 
     private function debug($task, $input, $output)
     {
