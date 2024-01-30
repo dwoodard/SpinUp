@@ -15,6 +15,14 @@ class UserFactory extends Factory
      */
     protected $model = User::class;
 
+    // FEATURE_LARAVEL_PWA:START
+    protected $pwa = true;
+    // FEATURE_LARAVEL_PWA:END
+
+    // FEATURE_TEST:START
+    protected $be_gone = false;
+    // FEATURE_TEST:END
+
     /**
      * Define the model's default state.
      *

@@ -197,7 +197,6 @@ class NewCommand extends Command
         // $this->handleIfExsistingProject($input, $output);
         // $this->installLaravel($input, $output);
         // $this->installBreeze($input, $output, $this->directory);
-        // /* anything below here should be optional and should be able to be turned off */
         // $this->installLaradock($input, $output);
         /*  */
 
@@ -291,141 +290,73 @@ class NewCommand extends Command
     */
     private function installStubs(InputInterface $input, OutputInterface $output)
     {
-        /*
-            using a custom function that reads each file in the stubs directory
-            looking for the feature flag, if true/false, it will include/exclude
-            that part of the stub file.
-
-            This Install Stubs function will be responsible for installing the stubs
-            it will loop through each file in the stubs directory, including sub directories
-            and will copy the file to the project directory, replacing any variables
-            in the stub file with the correct values.
-
-            It will check each file for any feature flags, and if the feature is toggled on,
-
-            we'll need to filter out the features that are toggled on, and only install those
-            features via ->filter() and ->map().
-
-            Once we have the list of features, we can loop through each file in the stubs
-            with this array of features we'll look through each file for something like
-            FEATURE_[FEATURE_NAME], and if it is found, we'll include that part of the stub file.
-
-            to do this we'll need to do the following:
-            - get the list of features that are toggled on
-            - loop through each file in the stubs directory and sub directories
-             - using Filesystem and RecursiveDirectoryIterator
-             - check if the file has any feature flags
-                - if it does, check if the feature is toggled on
-                    - if it is, include that part of the stub file
-                    - if not, exclude that part of the stub file
-            - copy the file to the project directory
-
-            one last thing to remember is if the file in in the root directory
-            it means it goes in the root directory of the project. we'll need a
-            way to check if the file is in the root directory, and if so, copy it
-            to the project directory.
-
-
-            do it until all files in the stubs directory are copied to the project directory
-
-            Example of pattern is
-            FEATURE_LARAVE_PWA:START
-                @laravelPWA
-            FEATURE_LARAVE_PWA:END
-
-            we want to include the @laravelPWA if FEATURE_LARAVE_PWA is toggled on
-            if FEATURE_LARAVE_PWA is not toggled on, we want to exclude the @laravelPWA
-
-            create a function called processFeatureFlags($contents, $features)
-            - it will check if the file has any feature flags
-            - if it does, check if the feature is toggled on
-            - if it is, include that part of the stub file
-            - then remove the feature flag from the file
-            - if not, exclude that part of the stub file
-            - then remove the feature flag from the file
-
-            - then return the contents of the file
-
-            lets sudo code this
-            - get all the files in the stubs directory
-            - loop through each file
-            - check if the file has any feature flags
-            - if it does, check if the feature is toggled on
-            - if it is, include that part of the stub file
-            - then remove the feature flag from the file
-            - if not, exclude that part of the stub file
-            - then remove the feature flag from the file
-            - then copy the file to the project directory (if its in the root directory, copy it to the project directory)
-            - then set the permissions to 0755
-        */
-
-
-        // if feature has the option, it means it is toggled on
-        $features = collect($input->getOption('features'));
+        $this->debug('Install Stubs...', $input, $output);
+        $this->timeLineOutput(false, $output, 'Installing Stubs...');
 
         // create Filesystem object
         $filesystem = new Filesystem();
 
+        // if feature is in the array of features, return true
+        $features = collect($input->getOption('features'));
+        // echo $features->join(PHP_EOL) . PHP_EOL;
+        // die();
+
         // get all the files in the stubs directory
-        $files = collect($filesystem->allFiles(dirname(__DIR__) . '/stubs'))->map(
-            fn ($file) => $file->getPathname()
+        $filePaths = collect($filesystem->allFiles(dirname(__DIR__) . '/stubs'))->map(
+            fn ($file) => ($file->getPathname())
         );
+        // echo $filePaths->join(PHP_EOL) . PHP_EOL;
+        // die();
 
-        /*
-
-            For each file, we need to check if the file has any feature flags
-
-            there will be 2 conditions for each feature flag
-            - one, if the feature is toggled on, we want to include that part code inbetween the feature flags START and END
-            - two, if the feature is toggled off, we want to exclude that part of the code inbetween the feature flags START and END
-
-            if true this:
-            $feature:START
-            CODE
-            $feature:END
-
-            becomes this:
-            CODE
-
-            if false this:
-            $feature:START
-            CODE
-            $feature:END
-
-            becomes this:
-            NOTHING
-
-            In order to do this, we'll need to do the following:
-            - get the list of features that are toggled on
-            - loop through each file in the stubs directory and sub directories
-             - using Filesystem and RecursiveDirectoryIterator
-             - check if the file has any feature flags
-                - if it does, check if the feature is toggled on
-                    - if it is, include that part of the stub file
-                    - if not, exclude that part of the stub file
-                - this function will use regex to find the feature flag, and then remove it from the file
-
-            the function needs to return the contents of the file
-
-
-        */
-
-        function removeFeatureFlagMarkers($contents, $features)
+        function echoExampleFiles($content, $stubFilePath)
         {
-            collect($features)->each(function ($feature) use (&$contents) {
-                $escapedFeature = preg_quote($feature, '/');
-                $pattern = "/^.*$escapedFeature:START.*$\n?(.*?)\n?^.*$escapedFeature:END.*$\n?/ms";
-                $contents = preg_replace($pattern, '$1', $contents || '');
-            });
+            if (str_contains($stubFilePath, 'example')) {
+                echo "--- $stubFilePath ---" . PHP_EOL;
+                echo $content;
+                echo PHP_EOL . PHP_EOL . PHP_EOL;
+            }
+        }
+        function removeMarkersFromStub(&$content, $features)
+        {
+            // Updated regex pattern to match the whole line
+            $regexPattern = "/^.*(FEATURE_.*?):START.*$\\n(.*?)\\n^.*(FEATURE_.*):END.*$/m";
+
+            // Use preg_replace_callback for complex processing
+            $content = preg_replace_callback($regexPattern, function ($matches) use ($features) {
+
+                // Check if the feature is in the provided features array
+                if ($features->contains($matches[1])) {
+                    // echo $matches[1] .  ":start" . PHP_EOL;
+                    // echo $matches[2] . PHP_EOL;
+                    // echo $matches[3] .  ":end" . PHP_EOL;
+                    return $matches[2];
+                } else {
+                    // Return an empty string to remove it
+                    return '';
+                }
+            }, $content);
+
+
+
+            // Return the modified content
+            return $content;
         }
 
-        function saveContentToNewDestination($file, $contents, $directory)
+        function saveContentToNewDestination($stubFilePath, $contents, $directory)
         {
+            // we need to take the $contents and save it to the new destination (root or sub directory)
 
-            $projectPath = $directory . str_replace('/stubs', '', str_replace(dirname(__DIR__), '', $file));
-            if (str_contains($file, '/stubs/root/')) {
-                $projectPath = $directory . '/' . basename($file);
-            }  
+            // lets make sure we have the contents
+            if (!$contents) {
+                return false;
+            }
+
+            // is stubFilePath in the root directory?
+            if (str_contains($stubFilePath, '/stubs/root/')) {
+                $projectPath = $directory . '/' . basename($stubFilePath);
+            } else {
+                $projectPath = $directory . str_replace('/stubs', '', str_replace(dirname(__DIR__), '', $stubFilePath));
+            }
 
             // check if the directory exists for the file
             // if not, create it
@@ -434,59 +365,77 @@ class NewCommand extends Command
             }
 
             // Copy the file to the project directory
-            if (copy($file, $projectPath)) {
+            if (copy($stubFilePath, $projectPath)) {
                 // Set the permissions to 0755
                 chmod($projectPath, 0755);
             }
-            echo file_exists($projectPath) ? "✅ "   : "❌ failed";
-            echo dirname($projectPath) . '/' . basename($projectPath)  . PHP_EOL;
+
             return file_exists($projectPath);
         }
 
 
+        // LOOP THROUGH EACH FILE
+        $filePaths->each(function ($filePath) use ($features, $input, $output, $filesystem) {
+            // echo $filePath . PHP_EOL;
+            // die();
+            $fileContent = file_get_contents($filePath);
+            // echo $fileContent . PHP_EOL;
+            // die();
+            $fileContent = removeMarkersFromStub($fileContent, $features);
 
-        $this->debug('Install Stubs...', $input, $output);
+            echo $fileContent . PHP_EOL;
+            die();
 
-        $this->timeLineOutput(false, $output, 'Installing Stubs...');
 
-        // loop through each file
-        $files->each(function ($file) use ($features, $filesystem, $output) {
-            $contents = removeFeatureFlagMarkers(file_get_contents($file), $features);
-            $saved = saveContentToNewDestination($file, $contents, $this->directory);
+
+            saveContentToNewDestination($filePath, $fileContent, $this->directory);
+
+
+
+
+            echoExampleFiles($fileContent, $filePath);
         });
 
 
 
 
         $this->timeLineOutput(true, $output, 'Installing Stubs...',  "✅ done");
+
+
+
+
+
+
+
+        // function removeFeatureFlagMarkersAndSaveContents($stubFilePath, $features, $directory)
+        // {
+        //     //Get contents of file
+        //     $content = file_get_contents($stubFilePath);
+
+        //     if (str_contains($stubFilePath, 'example')) {
+        //         echo $content;
+        //         return;
+        //     }
+
+
+
+
+        //     // collect($features)->each(function ($feature) use (&$content, $stubFilePath, $directory) {
+        //     //     $escapedFeature = preg_quote($feature, '/');
+
+        //     //     $pattern = "/^.*$escapedFeature:START.*$\n?(.*?)\n?^.*$escapedFeature:END.*$\n?/ms";
+        //     //     $content = preg_replace($pattern, '$1', $content || '');
+
+        //     //     saveContentToNewDestination($stubFilePath, $content, $directory);
+        //     // });
+        // }
+
+
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     /*
     --------------------------------------------------------------------------
     */
-
-
-
-
-
-
-
 
     /*
     |--------------------------------------------------------------------------
@@ -1011,6 +960,11 @@ class NewCommand extends Command
     }
 
 
+    private function clear()
+    {
+        /* some voodoo magic to clear the terminal */
+        echo chr(27) . chr(91) . 'H' . chr(27) . chr(91) . 'J';
+    }
 
     private function debug($task, $input, $output)
     {
