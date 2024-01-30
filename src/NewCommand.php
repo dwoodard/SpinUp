@@ -193,37 +193,21 @@ class NewCommand extends Command
         $this->directory =  ($this->name === '.') ? getcwd() : getcwd() . '/' . $this->name;
         $this->composer = new Composer(new Filesystem(), $this->directory);
 
+        /*  */
+        // $this->handleIfExsistingProject($input, $output);
+        // $this->installLaravel($input, $output);
+        // $this->installBreeze($input, $output, $this->directory);
+        // /* anything below here should be optional and should be able to be turned off */
+        // $this->installLaradock($input, $output);
+        /*  */
 
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | Handle If Exsisting Project
-        |--------------------------------------------------------------------------
-        |  Now that we have the name, we can check if the directory exists
-        |  and if it does, we can delete it if the -f flag is passed.
-        |  If not, we can ask if they want to delete it.
-        */
-        $this->handleIfExsistingProject($input, $output);
-
-        /*
-        |--------------------------------------------------------------------------
-        | Install Laravel
-        |--------------------------------------------------------------------------
-        |
-        | This section installs Laravel, and sets up the project, including
-        | setting up the database, and installing the composer packages
-        | that were selected.
-        |
-        */
-
-        $this->installLaravel($input, $output);
-        $this->installBreeze($input, $output, $this->directory);
-        /* anything below here should be optional and should be able to be turned off */
-        $this->installLaradock($input, $output);
         $this->installStubs($input, $output);
+
+        // this might in the stubs section?
         // $this->installDeployScript($input, $output);
+
         $this->installTemplates($input, $output);
+
         // $this->installFeatures($input, $output);
 
 
@@ -243,9 +227,17 @@ class NewCommand extends Command
         return 0;
     }
 
+    /*
+    |--------------------------------------------------------------------------
+    | Handle If Exsisting Project
+    |--------------------------------------------------------------------------
+    |  Now that we have the name, we can check if the directory exists
+    |  and if it does, we can delete it if the -f flag is passed.
+    |  If not, we can ask if they want to delete it.
+    */
     protected function handleIfExsistingProject(InputInterface $input, OutputInterface $output)
     {
-        $this->debug('handleIfExsistingProject...', $input, $output);
+        $this->debug('handleIfExsistingProject ...', $input, $output);
 
         //  -f, --force
         // if -f is passed, delete the project if it exists
@@ -262,6 +254,16 @@ class NewCommand extends Command
         }
     }
 
+    /*
+    |--------------------------------------------------------------------------
+    | Install Laravel
+    |--------------------------------------------------------------------------
+    |
+    | This section installs Laravel, and sets up the project, including
+    | setting up the database, and installing the composer packages
+    | that were selected.
+    |
+    */
     protected function installLaravel(InputInterface $input, OutputInterface $output)
     {
         $this->debug('Install Laravel...', $input, $output);
@@ -282,21 +284,178 @@ class NewCommand extends Command
     }
 
     /*
-        |--------------------------------------------------------------------------
-        | Stubs
-        |--------------------------------------------------------------------------
-        | Copy stub files from the stubs directory to the project directory.
-        */
+    |--------------------------------------------------------------------------
+    | Stubs
+    |--------------------------------------------------------------------------
+    | Copy stub files from the stubs directory to the project directory.
+    */
     private function installStubs(InputInterface $input, OutputInterface $output)
     {
         /*
             using a custom function that reads each file in the stubs directory
             looking for the feature flag, if true/false, it will include/exclude
             that part of the stub file.
+
+            This Install Stubs function will be responsible for installing the stubs
+            it will loop through each file in the stubs directory, including sub directories
+            and will copy the file to the project directory, replacing any variables
+            in the stub file with the correct values.
+
+            It will check each file for any feature flags, and if the feature is toggled on,
+
+            we'll need to filter out the features that are toggled on, and only install those
+            features via ->filter() and ->map().
+
+            Once we have the list of features, we can loop through each file in the stubs
+            with this array of features we'll look through each file for something like
+            FEATURE_[FEATURE_NAME], and if it is found, we'll include that part of the stub file.
+
+            to do this we'll need to do the following:
+            - get the list of features that are toggled on
+            - loop through each file in the stubs directory and sub directories
+             - using Filesystem and RecursiveDirectoryIterator
+             - check if the file has any feature flags
+                - if it does, check if the feature is toggled on
+                    - if it is, include that part of the stub file
+                    - if not, exclude that part of the stub file
+            - copy the file to the project directory
+
+            one last thing to remember is if the file in in the root directory
+            it means it goes in the root directory of the project. we'll need a
+            way to check if the file is in the root directory, and if so, copy it
+            to the project directory.
+
+
+            do it until all files in the stubs directory are copied to the project directory
+
+            Example of pattern is
+            FEATURE_LARAVE_PWA:START
+                @laravelPWA
+            FEATURE_LARAVE_PWA:END
+
+            we want to include the @laravelPWA if FEATURE_LARAVE_PWA is toggled on
+            if FEATURE_LARAVE_PWA is not toggled on, we want to exclude the @laravelPWA
+
+            create a function called processFeatureFlags($contents, $features)
+            - it will check if the file has any feature flags
+            - if it does, check if the feature is toggled on
+            - if it is, include that part of the stub file
+            - then remove the feature flag from the file
+            - if not, exclude that part of the stub file
+            - then remove the feature flag from the file
+
+            - then return the contents of the file
+
+            lets sudo code this
+            - get all the files in the stubs directory
+            - loop through each file
+            - check if the file has any feature flags
+            - if it does, check if the feature is toggled on
+            - if it is, include that part of the stub file
+            - then remove the feature flag from the file
+            - if not, exclude that part of the stub file
+            - then remove the feature flag from the file
+            - then copy the file to the project directory (if its in the root directory, copy it to the project directory)
+            - then set the permissions to 0755
         */
 
-        // list all features
-        $features = $input->getOption('features');
+
+        // if feature has the option, it means it is toggled on
+        $features = collect($input->getOption('features'));
+
+        // create Filesystem object
+        $filesystem = new Filesystem();
+
+        // get all the files in the stubs directory
+        $files = collect($filesystem->allFiles(dirname(__DIR__) . '/stubs'))->map(
+            fn ($file) => $file->getPathname()
+        );
+
+        // echo $files->join(PHP_EOL);
+        // echo PHP_EOL;
+
+
+        function processFeatureFlags($contents, $features)
+        {
+            // Check if the file has any feature flags
+            if (str_contains($contents, 'FEATURE_')) {
+                // Iterate through each feature flag
+                foreach ($features as $feature) {
+                    // Check if the feature is toggled on
+                    if (str_contains($contents, $feature)) {
+                        // Include all instances of that part of the stub file
+                        $contents = preg_replace(
+                            "/$feature:START(.*?)$feature:END/s",
+                            "",
+                            $contents
+                        );
+                    }
+                }
+            }
+            // Remove any remaining feature flag sections
+            $contents = preg_replace(
+                "/FEATURE_.*?:START(.*?)FEATURE_.*?:END/s",
+                "",
+                $contents
+            );
+            return $contents;
+        }
+
+        function saveContentToNewDestination($file, $contents, $directory)
+        {
+            echo $directory . PHP_EOL;
+            echo $file . PHP_EOL;
+            echo  PHP_EOL;
+            echo dirname(__DIR__);
+            die();
+            /*
+                /Users/dustin/code/spinup/ProjectName
+                /Users/dustin/code/spinup/stubs/database/factories/UserFactory.php
+
+                I want it to set the destination to this:
+                /Users/dustin/code/spinup/ProjectName/database/factories/UserFactory.php
+            */
+
+            $destination = str_replace(dirname(__DIR__) . '/stubs', '', $file);
+
+            // Create the target directory if it doesn't exist
+            if (!file_exists($directory . dirname($destination))) {
+                mkdir($directory . dirname($destination), 0755, true);
+            }
+
+            // Copy the file to the project directory
+            if (copy($file, $directory . $destination)) {
+                // Set the permissions to 0755
+                chmod($directory . $destination, 0755);
+            }
+
+            return file_exists($directory . $destination);
+        }
+
+
+
+
+        // loop through each file
+        $files->each(function ($file) use ($features, $filesystem, $output) {
+
+
+            // get the contents of the file
+            $contents = file_get_contents($file);
+
+
+            // check if the file has any feature flags
+            $contents = processFeatureFlags($contents, $features);
+
+            // write out contents to new destination
+            $saved = saveContentToNewDestination($file, $contents, $this->directory);
+
+            // if the file was not saved, show an error
+            $this->timeLineOutput(true, $output, "$file", $saved ?
+                "✅ done" :
+                "❌ failed");
+        });
+
+        // get the list of files in the stubs directory
 
         $this->debug('Install Stubs...', $input, $output);
 
@@ -304,6 +463,10 @@ class NewCommand extends Command
 
         $stubsDirectory = dirname(__DIR__) . '/stubs';
         $projectDirectory = $this->directory;
+
+
+
+        $this->timeLineOutput(true, $output, 'Installing Stubs...',  "✅ done");
     }
 
 
@@ -344,27 +507,27 @@ class NewCommand extends Command
     |
     | stubs/root/deploy.sh
     */
-    protected function installDeployScript(InputInterface $input, OutputInterface $output)
-    {
-        $this->debug('Install Deploy Script...', $input, $output);
+    // protected function installDeployScript(InputInterface $input, OutputInterface $output)
+    // {
+    //     $this->debug('Install Deploy Script...', $input, $output);
 
-        $this->timeLineOutput(false, $output, 'Installing Deploy Script...');
+    //     $this->timeLineOutput(false, $output, 'Installing Deploy Script...');
 
-        $stubRoot = dirname(__DIR__) . '/stubs' . '/root';
+    //     $stubRoot = dirname(__DIR__) . '/stubs' . '/root';
 
-        $this->copyFile(
-            $stubRoot . '/deploy.sh',
-            $this->directory . '/deploy.sh'
-        );
-        // set permissions
-        $commands = [
-            "chmod 755 $this->directory/deploy.sh",
-        ];
-        $this->runCommands($commands, $input, $output);
+    //     $this->copyFile(
+    //         $stubRoot . '/deploy.sh',
+    //         $this->directory . '/deploy.sh'
+    //     );
+    //     // set permissions
+    //     $commands = [
+    //         "chmod 755 $this->directory/deploy.sh",
+    //     ];
+    //     $this->runCommands($commands, $input, $output);
 
-        // replace last output line with a green checkmark
-        $this->timeLineOutput(true, $output, 'Installing Deploy Script...',  "✅ done");
-    }
+    //     // replace last output line with a green checkmark
+    //     $this->timeLineOutput(true, $output, 'Installing Deploy Script...',  "✅ done");
+    // }
 
     /*
     |--------------------------------------------------------------------------
@@ -597,13 +760,13 @@ class NewCommand extends Command
         $this->timeLineOutput(false, $output, "Installing $feature...");
 
         switch ($feature) {
-            case 'laravel-pwa':
+            case 'FEATURE_LARAVEL_PWA':
                 $this->installLaravelPWA($input, $output);
                 break;
-            case 'laravel-schemaless-attributes':
+            case 'FEATURE_LARAVEL_SCHEMALESS_ATTRIBUTES':
                 $this->installLaravelSchemalessAttributes($input, $output);
                 break;
-            case 'laravel-cashier':
+            case 'FEATURE_LARAVEL_CASHIER':
                 $this->installLaravelCashier($input, $output);
                 break;
             default:
@@ -856,11 +1019,7 @@ class NewCommand extends Command
     }
 
 
-    protected function copyDirectory(string $source, string $destination)
-    {
-        $filesystem = new Filesystem();
-        $filesystem->copyDirectory($source, $destination);
-    }
+
 
     protected function copyFile(string $source, string $destination)
     {
