@@ -194,11 +194,11 @@ class NewCommand extends Command
         $this->composer = new Composer(new Filesystem(), $this->directory);
 
         /*  */
-        $this->handleIfExsistingProject($input, $output);
-        $this->installLaravel($input, $output);
-        $this->installBreeze($input, $output, $this->directory);
-        /* anything below here should be optional and should be able to be turned off */
-        $this->installLaradock($input, $output);
+        // $this->handleIfExsistingProject($input, $output);
+        // $this->installLaravel($input, $output);
+        // $this->installBreeze($input, $output, $this->directory);
+        // /* anything below here should be optional and should be able to be turned off */
+        // $this->installLaradock($input, $output);
         /*  */
 
         $this->installStubs($input, $output);
@@ -371,50 +371,61 @@ class NewCommand extends Command
             fn ($file) => $file->getPathname()
         );
 
+        /*
+
+            For each file, we need to check if the file has any feature flags
+
+            there will be 2 conditions for each feature flag
+            - one, if the feature is toggled on, we want to include that part code inbetween the feature flags START and END
+            - two, if the feature is toggled off, we want to exclude that part of the code inbetween the feature flags START and END
+
+            if true this:
+            $feature:START
+            CODE
+            $feature:END
+
+            becomes this:
+            CODE
+
+            if false this:
+            $feature:START
+            CODE
+            $feature:END
+
+            becomes this:
+            NOTHING
+
+            In order to do this, we'll need to do the following:
+            - get the list of features that are toggled on
+            - loop through each file in the stubs directory and sub directories
+             - using Filesystem and RecursiveDirectoryIterator
+             - check if the file has any feature flags
+                - if it does, check if the feature is toggled on
+                    - if it is, include that part of the stub file
+                    - if not, exclude that part of the stub file
+                - this function will use regex to find the feature flag, and then remove it from the file
+
+            the function needs to return the contents of the file
 
 
-        function processFeatureFlags($contents, $features)
+        */
+
+        function removeFeatureFlagMarkers($contents, $features)
         {
-            // Check if the file has any feature flags
-            if (str_contains($contents, 'FEATURE_')) {
-                // Iterate through each feature flag
-                foreach ($features as $feature) {
-                    // Check if the feature is toggled on
-                    if (str_contains($contents, $feature)) {
-                        // Include all instances of that part of the stub file
-                        $contents = preg_replace(
-                            "/$feature:START(.*?)$feature:END/s",
-                            "",
-                            $contents
-                        );
-                    }
-                }
-            }
-            // Remove any remaining feature flag sections
-            $contents = preg_replace(
-                "/FEATURE_.*?:START(.*?)FEATURE_.*?:END/s",
-                "",
-                $contents
-            );
-            return $contents;
+            collect($features)->each(function ($feature) use (&$contents) {
+                $escapedFeature = preg_quote($feature, '/');
+                $pattern = "/^.*$escapedFeature:START.*$\n?(.*?)\n?^.*$escapedFeature:END.*$\n?/ms";
+                $contents = preg_replace($pattern, '$1', $contents || '');
+            });
         }
 
         function saveContentToNewDestination($file, $contents, $directory)
         {
 
-
             $projectPath = $directory . str_replace('/stubs', '', str_replace(dirname(__DIR__), '', $file));
-
-            // a quick check to see if the file is in the root directory
-            // if it is, we'll need to copy it to the project directory
-            // if file is in the root directory, copy it to the project directory
             if (str_contains($file, '/stubs/root/')) {
                 $projectPath = $directory . '/' . basename($file);
-            }
-
-
-
-
+            }  
 
             // check if the directory exists for the file
             // if not, create it
@@ -422,48 +433,28 @@ class NewCommand extends Command
                 mkdir(dirname($projectPath), 0755, true);
             }
 
-
-
             // Copy the file to the project directory
             if (copy($file, $projectPath)) {
                 // Set the permissions to 0755
                 chmod($projectPath, 0755);
             }
-
+            echo file_exists($projectPath) ? "✅ "   : "❌ failed";
+            echo dirname($projectPath) . '/' . basename($projectPath)  . PHP_EOL;
             return file_exists($projectPath);
         }
 
 
 
-
-        // loop through each file
-        $files->each(function ($file) use ($features, $filesystem, $output) {
-
-
-            // get the contents of the file
-            $contents = file_get_contents($file);
-
-
-            // check if the file has any feature flags
-            $contents = processFeatureFlags($contents, $features);
-
-            // write out contents to new destination
-            $saved = saveContentToNewDestination($file, $contents, $this->directory);
-
-            // if the file was not saved, show an error
-            $this->timeLineOutput(true, $output, "$file", $saved ?
-                "✅ done" :
-                "❌ failed");
-        });
-
-        // get the list of files in the stubs directory
-
         $this->debug('Install Stubs...', $input, $output);
 
         $this->timeLineOutput(false, $output, 'Installing Stubs...');
 
-        $stubsDirectory = dirname(__DIR__) . '/stubs';
-        $projectDirectory = $this->directory;
+        // loop through each file
+        $files->each(function ($file) use ($features, $filesystem, $output) {
+            $contents = removeFeatureFlagMarkers(file_get_contents($file), $features);
+            $saved = saveContentToNewDestination($file, $contents, $this->directory);
+        });
+
 
 
 

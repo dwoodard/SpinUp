@@ -11,9 +11,10 @@
         <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
 
         <!-- Scripts -->
-        FEATURE_LARAVEL_PWA:START
+        <!-- FEATURE_LARAVEL_PWA:START -->
         @laravelPWA
-        FEATURE_LARAVEL_PWA:END
+        <!-- FEATURE_LARAVEL_PWA:END -->
+
 
         @routes
         @vite(['resources/js/app.js', "resources/js/Pages/{$page['component']}.vue"])
