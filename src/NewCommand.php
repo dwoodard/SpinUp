@@ -194,10 +194,10 @@ class NewCommand extends Command
         $this->composer = new Composer(new Filesystem(), $this->directory);
 
         /*  */
-        $this->handleIfExsistingProject($input, $output);
-        $this->installLaravel($input, $output);
-        $this->installBreeze($input, $output, $this->directory);
-        $this->installLaradock($input, $output);
+        // $this->handleIfExsistingProject($input, $output);
+        // $this->installLaravel($input, $output);
+        // $this->installBreeze($input, $output, $this->directory);
+        // $this->installLaradock($input, $output);
         /*  */
 
         $this->installStubs($input, $output);
@@ -286,8 +286,7 @@ class NewCommand extends Command
     */
     private function installStubs(InputInterface $input, OutputInterface $output)
     {
-        $this->debug('Install Stubs...', $input, $output);
-        $this->timeLineOutput(false, $output, 'Installing Stubs...');
+        // $this->timeLineOutput(false, $output, 'Installing Stubs...');
 
         // create Filesystem object
         $filesystem = new Filesystem();
@@ -308,24 +307,18 @@ class NewCommand extends Command
         function removeMarkersFromStub($content, $features)
         {
             // Updated regex pattern to match the whole line
-            $regexPattern = "/^.*(FEATURE_.*?):START.*$\\n(.*?)\\n^.*(FEATURE_.*):END.*$/m";
+            $regexPattern = "/^(.*(FEATURE_.*):START.*)\\n(.*?)\\n^(.*(FEATURE_.*):END.*)$/m";
 
-            // Use preg_replace_callback for complex processing
             $content = preg_replace_callback($regexPattern, function ($matches) use ($features) {
 
-                // Check if the feature is in the provided features array
-                if ($features->contains($matches[1])) {
-                    // echo $matches[1] .  ":start" . PHP_EOL;
-                    // echo $matches[2] . PHP_EOL;
-                    // echo $matches[3] .  ":end" . PHP_EOL;
-                    return $matches[2];
+
+                if ($features->contains($matches[2])) {
+                    return $matches[3];
                 } else {
                     // Return an empty string to remove it
                     return '';
                 }
             }, $content);
-
-
 
             // Return the modified content
             return $content;
@@ -354,17 +347,30 @@ class NewCommand extends Command
                 chmod($projectPath, 0755);
             }
 
+            // use fileContentModified to save the content to the new destination
+            file_put_contents($projectPath, $fileContentModified);
+
             return file_exists($projectPath);
         }
 
-        // LOOP THROUGH EACH FILE
-        $filePaths->each(function ($stubFilePath) use ($features, $input, $output, $filesystem) {
-            $fileContent = file_get_contents($stubFilePath);
-            $fileContentModified = removeMarkersFromStub($fileContent, $features);
-            saveContentToNewDestination($stubFilePath, $fileContentModified, $this->directory);
-        });
+        // loop through the files
+        foreach ($filePaths as $stubFilePath) {
+            // get the contents of the file
+            $contents = file_get_contents($stubFilePath);
 
-        $this->timeLineOutput(true, $output, 'Installing Stubs...',  "✅ done");
+            // remove markers from stub
+            $contents = removeMarkersFromStub($contents, $features);
+
+            // save content to new destination
+            $saved = saveContentToNewDestination($stubFilePath, $contents, $this->directory);
+
+            // if saved, show success message
+            if ($saved) {
+                $this->timeLineOutput(true, $output, 'Installing Stubs...',  "✅ done");
+            } else {
+                $this->timeLineOutput(true, $output, 'Installing Stubs...',  "❌ failed");
+            }
+        }
     }
 
     /*
@@ -537,11 +543,11 @@ class NewCommand extends Command
     private function timeLineOutput($eraseLastLine, $output, $message = "Installing...", $status = 'in progress')
     {
 
-        if ($eraseLastLine) {
-            // move cursor up and erase line
-            $output->write("\033[1A"); // Move up
-            $output->write("\033[K"); // Erase line
-        }
+        // if ($eraseLastLine) {
+        //     // move cursor up and erase line
+        //     $output->write("\033[1A"); // Move up
+        //     $output->write("\033[K"); // Erase line
+        // }
 
         $output->writeln("<bg=green;fg=black> $message </> $status");
     }
