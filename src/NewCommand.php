@@ -194,18 +194,14 @@ class NewCommand extends Command
         $this->composer = new Composer(new Filesystem(), $this->directory);
 
         /*  */
-        // $this->handleIfExsistingProject($input, $output);
-        // $this->installLaravel($input, $output);
-        // $this->installBreeze($input, $output, $this->directory);
-        // $this->installLaradock($input, $output);
+        $this->handleIfExsistingProject($input, $output);
+        $this->installLaravel($input, $output);
+        $this->installBreeze($input, $output, $this->directory);
+        $this->installLaradock($input, $output);
         /*  */
 
         $this->installStubs($input, $output);
-
-        // this might in the stubs section?
-        // $this->installDeployScript($input, $output);
-
-        $this->installTemplates($input, $output);
+        // $this->installTemplates($input, $output);
 
         // $this->installFeatures($input, $output);
 
@@ -296,7 +292,7 @@ class NewCommand extends Command
         // create Filesystem object
         $filesystem = new Filesystem();
 
-        // if feature is in the array of features, return true
+        // get list of features (in in array, its toggled on)
         $features = collect($input->getOption('features'));
         // echo $features->join(PHP_EOL) . PHP_EOL;
         // die();
@@ -308,15 +304,8 @@ class NewCommand extends Command
         // echo $filePaths->join(PHP_EOL) . PHP_EOL;
         // die();
 
-        function echoExampleFiles($content, $stubFilePath)
-        {
-            if (str_contains($stubFilePath, 'example')) {
-                echo "--- $stubFilePath ---" . PHP_EOL;
-                echo $content;
-                echo PHP_EOL . PHP_EOL . PHP_EOL;
-            }
-        }
-        function removeMarkersFromStub(&$content, $features)
+
+        function removeMarkersFromStub($content, $features)
         {
             // Updated regex pattern to match the whole line
             $regexPattern = "/^.*(FEATURE_.*?):START.*$\\n(.*?)\\n^.*(FEATURE_.*):END.*$/m";
@@ -342,18 +331,13 @@ class NewCommand extends Command
             return $content;
         }
 
-        function saveContentToNewDestination($stubFilePath, $contents, $directory)
+        function saveContentToNewDestination($stubFilePath, $fileContentModified, $directory)
         {
             // we need to take the $contents and save it to the new destination (root or sub directory)
 
-            // lets make sure we have the contents
-            if (!$contents) {
-                return false;
-            }
-
             // is stubFilePath in the root directory?
             if (str_contains($stubFilePath, '/stubs/root/')) {
-                $projectPath = $directory . '/' . basename($stubFilePath);
+                $projectPath = $directory . '/' . str_replace('/stubs/root/', '', str_replace(dirname(__DIR__), '', $stubFilePath));
             } else {
                 $projectPath = $directory . str_replace('/stubs', '', str_replace(dirname(__DIR__), '', $stubFilePath));
             }
@@ -373,64 +357,14 @@ class NewCommand extends Command
             return file_exists($projectPath);
         }
 
-
         // LOOP THROUGH EACH FILE
-        $filePaths->each(function ($filePath) use ($features, $input, $output, $filesystem) {
-            // echo $filePath . PHP_EOL;
-            // die();
-            $fileContent = file_get_contents($filePath);
-            // echo $fileContent . PHP_EOL;
-            // die();
-            $fileContent = removeMarkersFromStub($fileContent, $features);
-
-            echo $fileContent . PHP_EOL;
-            die();
-
-
-
-            saveContentToNewDestination($filePath, $fileContent, $this->directory);
-
-
-
-
-            echoExampleFiles($fileContent, $filePath);
+        $filePaths->each(function ($stubFilePath) use ($features, $input, $output, $filesystem) {
+            $fileContent = file_get_contents($stubFilePath);
+            $fileContentModified = removeMarkersFromStub($fileContent, $features);
+            saveContentToNewDestination($stubFilePath, $fileContentModified, $this->directory);
         });
 
-
-
-
         $this->timeLineOutput(true, $output, 'Installing Stubs...',  "✅ done");
-
-
-
-
-
-
-
-        // function removeFeatureFlagMarkersAndSaveContents($stubFilePath, $features, $directory)
-        // {
-        //     //Get contents of file
-        //     $content = file_get_contents($stubFilePath);
-
-        //     if (str_contains($stubFilePath, 'example')) {
-        //         echo $content;
-        //         return;
-        //     }
-
-
-
-
-        //     // collect($features)->each(function ($feature) use (&$content, $stubFilePath, $directory) {
-        //     //     $escapedFeature = preg_quote($feature, '/');
-
-        //     //     $pattern = "/^.*$escapedFeature:START.*$\n?(.*?)\n?^.*$escapedFeature:END.*$\n?/ms";
-        //     //     $content = preg_replace($pattern, '$1', $content || '');
-
-        //     //     saveContentToNewDestination($stubFilePath, $content, $directory);
-        //     // });
-        // }
-
-
     }
 
     /*
