@@ -316,7 +316,7 @@ class NewCommand extends Command
                     return $matches[3];
                 } else {
                     // Return an empty string to remove it
-                    return '';
+                    return null;
                 }
             }, $content);
 
