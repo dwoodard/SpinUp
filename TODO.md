@@ -1,5 +1,7 @@
 #TODO
 
+- fix Installing Stubs... show stub instead
+- work on the layout both for admin and public
 
 - DELETE `resources/views/layouts/welcome.blade.php`
 - CP Stub `resources/js/Pages/Welcome.vue`

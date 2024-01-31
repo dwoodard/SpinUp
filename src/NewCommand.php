@@ -324,16 +324,11 @@ class NewCommand extends Command
             return $content;
         }
 
-        function saveContentToNewDestination($stubFilePath, $fileContentModified, $directory)
+        function saveContentToNewDestination($stubFilePath, $fileContentModified, $projectPath)
         {
             // we need to take the $contents and save it to the new destination (root or sub directory)
 
-            // is stubFilePath in the root directory?
-            if (str_contains($stubFilePath, '/stubs/root/')) {
-                $projectPath = $directory . '/' . str_replace('/stubs/root/', '', str_replace(dirname(__DIR__), '', $stubFilePath));
-            } else {
-                $projectPath = $directory . str_replace('/stubs', '', str_replace(dirname(__DIR__), '', $stubFilePath));
-            }
+
 
             // check if the directory exists for the file
             // if not, create it
@@ -353,23 +348,30 @@ class NewCommand extends Command
             return file_exists($projectPath);
         }
 
+        $saved = null;
         // loop through the files
         foreach ($filePaths as $stubFilePath) {
             // get the contents of the file
             $contents = file_get_contents($stubFilePath);
 
             // remove markers from stub
+            // echo $stubFilePath . PHP_EOL;
             $contents = removeMarkersFromStub($contents, $features);
 
-            // save content to new destination
-            $saved = saveContentToNewDestination($stubFilePath, $contents, $this->directory);
+            $destinationPath = str_contains($stubFilePath, '/stubs/root/') ?
+                $this->directory . '/' . str_replace('/stubs/root/', '', str_replace(dirname(__DIR__), '', $stubFilePath)) :
+                $this->directory . str_replace('/stubs', '', str_replace(dirname(__DIR__), '', $stubFilePath));
 
-            // if saved, show success message
-            if ($saved) {
-                $this->timeLineOutput(true, $output, 'Installing Stubs...',  "✅ done");
-            } else {
-                $this->timeLineOutput(true, $output, 'Installing Stubs...',  "❌ failed");
-            }
+
+            // save content to new destination
+            $copied = saveContentToNewDestination($stubFilePath, $contents, $destinationPath);
+
+            $stubFilePath = str_replace(dirname(__DIR__) . '/stubs/', '', $stubFilePath);
+            $destinationPath = str_replace($this->directory . '/', '', $destinationPath);
+            $fromTo = "Copied: $stubFilePath" .  " =>: $destinationPath";
+
+
+            echo ($copied ? "✅" : "❌") . " $fromTo" . PHP_EOL;
         }
     }
 
@@ -377,38 +379,7 @@ class NewCommand extends Command
     --------------------------------------------------------------------------
     */
 
-    /*
-    |--------------------------------------------------------------------------
-    | Install Deploy Script
-    |--------------------------------------------------------------------------
-    | This script automates the setup and management of a Laravel web
-    | application within a Docker environment. It checks and
-    | installs dependencies, manages database migrations,
-    | and starts or builds Docker containers for local development.
-    |
-    | stubs/root/deploy.sh
-    */
-    // protected function installDeployScript(InputInterface $input, OutputInterface $output)
-    // {
-    //     $this->debug('Install Deploy Script...', $input, $output);
 
-    //     $this->timeLineOutput(false, $output, 'Installing Deploy Script...');
-
-    //     $stubRoot = dirname(__DIR__) . '/stubs' . '/root';
-
-    //     $this->copyFile(
-    //         $stubRoot . '/deploy.sh',
-    //         $this->directory . '/deploy.sh'
-    //     );
-    //     // set permissions
-    //     $commands = [
-    //         "chmod 755 $this->directory/deploy.sh",
-    //     ];
-    //     $this->runCommands($commands, $input, $output);
-
-    //     // replace last output line with a green checkmark
-    //     $this->timeLineOutput(true, $output, 'Installing Deploy Script...',  "✅ done");
-    // }
 
     /*
     |--------------------------------------------------------------------------
