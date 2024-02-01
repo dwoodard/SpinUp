@@ -194,10 +194,10 @@ class NewCommand extends Command
         $this->composer = new Composer(new Filesystem(), $this->directory);
 
         /*  */
-        // $this->handleIfExsistingProject($input, $output);
-        // $this->installLaravel($input, $output);
-        // $this->installBreeze($input, $output, $this->directory);
-        // $this->installLaradock($input, $output);
+        $this->handleIfExsistingProject($input, $output);
+        $this->installLaravel($input, $output);
+        $this->installBreeze($input, $output, $this->directory);
+        $this->installLaradock($input, $output);
         /*  */
 
         $this->installStubs($input, $output);
