@@ -34,7 +34,7 @@ class NewCommand extends Command
     protected $composer;
 
     private $name;
-    private $directory;
+    private $projectDirectory;
 
     // Features must follow the naming convention of FEATURE_[NAME_OF_FEATURE]
     private $features = [
@@ -177,31 +177,19 @@ class NewCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | SETUP
-        |--------------------------------------------------------------------------
-        |
-        | Variables and setup for the rest of the script, including
-        | setting up the project name, directory, and composer
-        | instance.
-        |
-        */
         $this->name = $input->getArgument('name');
-        $this->directory =  ($this->name === '.') ? getcwd() : getcwd() . '/' . $this->name;
-        $this->composer = new Composer(new Filesystem(), $this->directory);
+        $this->projectDirectory =  ($this->name === '.') ? getcwd() : getcwd() . '/' . $this->name;
+        $this->composer = new Composer(new Filesystem(), $this->projectDirectory);
 
         /*  */
         $this->handleIfExsistingProject($input, $output);
         $this->installLaravel($input, $output);
-        $this->installBreeze($input, $output, $this->directory);
+        $this->installBreeze($input, $output, $this->projectDirectory);
         $this->installLaradock($input, $output);
         /*  */
 
         $this->installStubs($input, $output);
-        // $this->installFeatures($input, $output);
+        $this->installFeatures($input, $output);
         // $this->installTemplates($input, $output);
 
 
@@ -236,13 +224,13 @@ class NewCommand extends Command
         //  -f, --force
         // if -f is passed, delete the project if it exists
         if (!$input->getOption('force')) {
-            $this->verifyApplicationDoesntExist($this->directory, $input, $output);
+            $this->verifyApplicationDoesntExist($this->projectDirectory, $input, $output);
         }
         // if not -f is passed, ask if they want to delete the project
         else {
             // -f is passed, delete the project if it exists
             $commands = [
-                'rm -rf ' . $this->directory,
+                'rm -rf ' . $this->projectDirectory,
             ];
             $this->runCommands($commands, $input, $output);
         }
@@ -266,7 +254,7 @@ class NewCommand extends Command
         $this->timeLineOutput(true, $output, 'Installing Laravel...');
 
         $commands = [
-            "composer create-project $quite laravel/laravel $this->directory  --remove-vcs --prefer-dist",
+            "composer create-project $quite laravel/laravel $this->projectDirectory  --remove-vcs --prefer-dist",
         ];
 
         $this->runCommands($commands, $input, $output);
@@ -393,6 +381,11 @@ class NewCommand extends Command
 
         // loop through the files
         foreach ($filePaths as $stubFilePath) {
+
+            if (!$input->getOption('debug') && str_contains($stubFilePath, '__example__')) {
+                continue;
+            }
+
             // get the contents of the file
             $contents = file_get_contents($stubFilePath);
 
@@ -400,13 +393,13 @@ class NewCommand extends Command
             $contents = removeMarkersFromStub($contents, $features);
 
             $destinationPath = str_contains($stubFilePath, '/stubs/root/') ?
-                $this->directory . '/' . str_replace('/stubs/root/', '', str_replace(dirname(__DIR__), '', $stubFilePath)) :
-                $this->directory . str_replace('/stubs', '', str_replace(dirname(__DIR__), '', $stubFilePath));
+                $this->projectDirectory . '/' . str_replace('/stubs/root/', '', str_replace(dirname(__DIR__), '', $stubFilePath)) :
+                $this->projectDirectory . str_replace('/stubs', '', str_replace(dirname(__DIR__), '', $stubFilePath));
 
             $copied = saveContentToNewDestination($stubFilePath, $contents, $destinationPath);
 
             $stubFilePath = str_replace(dirname(__DIR__) . '/stubs/', '', $stubFilePath);
-            $destinationPath = str_replace($this->directory . '/', '', $destinationPath);
+            $destinationPath = str_replace($this->projectDirectory . '/', '', $destinationPath);
             $fromTo = "Copied: $stubFilePath" .  " =>: $destinationPath";
 
             echo ($copied ? "✅" : "❌") . " $fromTo" . PHP_EOL;
@@ -455,7 +448,7 @@ class NewCommand extends Command
             $laravelCommands,
             $input,
             $output,
-            workingPath: $this->directory,
+            workingPath: $this->projectDirectory,
         );
 
 
@@ -476,7 +469,7 @@ class NewCommand extends Command
             $laradockCommands,
             $input,
             $output,
-            workingPath: $this->directory . '/laradock',
+            workingPath: $this->projectDirectory . '/laradock',
         );
     }
 
@@ -518,7 +511,7 @@ class NewCommand extends Command
 
         $output->writeln(
             PHP_EOL .
-                "cd $this->directory  && ./deploy.sh"
+                "cd $this->projectDirectory  && ./deploy.sh"
                 . PHP_EOL
         );
     }
@@ -571,7 +564,7 @@ class NewCommand extends Command
 
         // remove the welcome.blade.php file
         $commands = [
-            "rm -rf $this->directory/resources/views/welcome.blade.php",
+            "rm -rf $this->projectDirectory/resources/views/welcome.blade.php",
 
         ];
         $this->runCommands($commands, $input, $output);
@@ -612,19 +605,20 @@ class NewCommand extends Command
             "FEATURE_LARAVEL_PWA" => $this->runCommands([
                 'composer require silviolleite/laravelpwa --prefer-dist >/dev/null 2>&1',
                 $this->phpBinary() . ' artisan vendor:publish --provider="LaravelPWA\Providers\LaravelPWAServiceProvider"',
-            ], $input, $output, workingPath: $this->directory),
+            ], $input, $output, workingPath: $this->projectDirectory),
 
             "FEATURE_LARAVEL_SCHEMALESS_ATTRIBUTES" => $this->runCommands([
                 "composer require spatie/laravel-schemaless-attributes --prefer-dist >/dev/null 2>&1",
-            ], $input, $output, workingPath: $this->directory),
+            ], $input, $output, workingPath: $this->projectDirectory),
 
             "FEATURE_LARAVEL_CASHIER" => $this->runCommands([
                 "composer require laravel/cashier --prefer-dist >/dev/null 2>&1",
-            ], $input, $output, workingPath: $this->directory),
+            ], $input, $output, workingPath: $this->projectDirectory),
 
 
         ];
-
+        $feature;
+        die();
         $installs[$feature](); // run the function
     }
 
@@ -658,10 +652,15 @@ class NewCommand extends Command
         $output->writeln("<bg=green;fg=black> $message </> $status");
     }
 
-    protected function verifyApplicationDoesntExist($directory, InputInterface $input, OutputInterface $output)
+    protected function verifyApplicationDoesntExist($projectDirectory, InputInterface $input, OutputInterface $output)
     {
-        if ((is_dir($directory) || is_file($directory)) && $directory != getcwd()) {
-            throw new RuntimeException('Application already exists! ' . __FILE__ . ':' . __LINE__);
+
+        $message = "Application already exists!
+
+        If you want to install the application in this directory, use the --force option. ";
+
+        if ((is_dir($projectDirectory) || is_file($projectDirectory)) && $projectDirectory != getcwd()) {
+            throw new RuntimeException($message . __FILE__ . ':' . __LINE__);
         }
     }
 
