@@ -24,13 +24,13 @@ echo 'FEATURE_LARAVEL_PWA3';
 echo 'FEATURE_LARAVEL_PWA4';
 # FEATURE_LARAVEL_PWA:END
 
-# FEATURE_LARAVEL_PWA:START#######
+# FEATURE_LARAVEL_PWA:START####### asdkljflkasjdf
 echo 'FEATURE_LARAVEL_PWA5';
 # FEATURE_LARAVEL_PWA:END########
 
 
 # FEATURE_WHERE_TAG_DOES_NOT_EXIST:START
-# My flags should be deleted regardless of the tag because they are not in the array
+# I should not be here
 # FEATURE_WHERE_TAG_DOES_NOT_EXIST:END
 
 echo 'end of file';

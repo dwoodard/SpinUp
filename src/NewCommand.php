@@ -194,10 +194,10 @@ class NewCommand extends Command
         $this->composer = new Composer(new Filesystem(), $this->directory);
 
         /*  */
-        $this->handleIfExsistingProject($input, $output);
-        $this->installLaravel($input, $output);
-        $this->installBreeze($input, $output, $this->directory);
-        $this->installLaradock($input, $output);
+        // $this->handleIfExsistingProject($input, $output);
+        // $this->installLaravel($input, $output);
+        // $this->installBreeze($input, $output, $this->directory);
+        // $this->installLaradock($input, $output);
         /*  */
 
         $this->installStubs($input, $output);
@@ -306,22 +306,68 @@ class NewCommand extends Command
 
         function removeMarkersFromStub($content, $features)
         {
-            // Updated regex pattern to match the whole line
-            $regexPattern = "/^(.*(FEATURE_.*):START.*)\\n(.*?)\\n^(.*(FEATURE_.*):END.*)$/m";
+            // for each line in the file
+            $result = '';
+            $hasFeature = false;
+            $inFeature = false;
+            $lines = explode(PHP_EOL, $content);
+            $deleteBlock = false;
 
-            $content = preg_replace_callback($regexPattern, function ($matches) use ($features) {
+            foreach ($lines as $key => $line) {
+                // we'll use a negative approach to skip line or add it to the result
 
+                /*
+                    this could happen where the feature is set but not in the array
+                    # FEATURE_WHERE_TAG_DOES_NOT_EXIST:START
+                    # My flags should be deleted regardless of the tag because they are not in the array
+                    # FEATURE_WHERE_TAG_DOES_NOT_EXIST:END
 
-                if ($features->contains($matches[2])) {
-                    return $matches[3];
-                } else {
-                    // Return an empty string to remove it
-                    return null;
+                    when this is the case, we should delete the lines until the end of the block
+                    call this: deleteBlock
+                */
+
+                // is the line a feature or in the block of a feature
+                if (preg_match('/(FEATURE_.*):START.*/', $line, $matches)) {
+                    $hasFeature = $features->contains($matches[1]);
+                    $inFeature = true; // use to check if we are in the block of a feature
+
+                    if ($hasFeature) {
+                        $deleteBlock = false;
+                        $inFeature = true;
+                        continue;
+                    } else {
+                        $deleteBlock = true;
+                        $inFeature = true;
+                        $hasFeature = false;
+                        continue;
+                    }
                 }
-            }, $content);
 
-            // Return the modified content
-            return $content;
+
+
+                // check if the line is the end of the block,
+                // if so, set deleteBlock to false and continue
+
+                if (preg_match('/(FEATURE_.*):END.*/', $line, $matches)) {
+                    $deleteBlock = false;
+                    $inFeature = false;
+                    $hasFeature = false;
+
+                    continue;
+                }
+                if ($deleteBlock && $inFeature) {
+                    continue;
+                }
+
+
+
+
+
+
+
+                $result .= $line . PHP_EOL;
+            }
+            return $result;
         }
 
         function saveContentToNewDestination($stubFilePath, $fileContentModified, $projectPath)
