@@ -69,6 +69,7 @@ class NewCommand extends Command
             ->addOption('dev', null, InputOption::VALUE_NONE, 'Installs the latest "development" release')
             ->addOption('laravel-quiet', null, InputOption::VALUE_OPTIONAL, 'Dont show any Laravel Install', true)
 
+
             //debug
             ->addOption('debug', null, InputOption::VALUE_NONE, 'Debug')
 
@@ -200,7 +201,7 @@ class NewCommand extends Command
         /*  */
 
         $this->installStubs($input, $output);
-        $this->installFeatures($input, $output);
+        // $this->installFeatures($input, $output);
         // $this->installTemplates($input, $output);
 
 
@@ -523,26 +524,7 @@ class NewCommand extends Command
     }
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | TimeLine Output
-    |--------------------------------------------------------------------------
-    | While running through the setup, we want show the user what is happening
-    | and if it was successful or not. This function is used to output
-    | the status of the setup, while also removing the previous
-    |
-    */
-    private function timeLineOutput($eraseLastLine, $output, $message = "Installing...", $status = 'in progress')
-    {
 
-        // if ($eraseLastLine) {
-        //     // move cursor up and erase line
-        //     $output->write("\033[1A"); // Move up
-        //     $output->write("\033[K"); // Erase line
-        // }
-
-        $output->writeln("<bg=green;fg=black> $message </> $status");
-    }
 
 
     /*
@@ -626,87 +608,54 @@ class NewCommand extends Command
 
     protected function installFeature($feature, InputInterface $input, OutputInterface $output)
     {
- 
-
         $installs = [
-            "FEATURE_LARAVEL_PWA" => $this->installLaravelPWA($input, $output),
-            "FEATURE_LARAVEL_SCHEMALESS_ATTRIBUTES" => $this->installLaravelSchemalessAttributes($input, $output),
-            "FEATURE_LARAVEL_CASHIER" => $this->installLaravelCashier($input, $output),
+            "FEATURE_LARAVEL_PWA" => $this->runCommands([
+                'composer require silviolleite/laravelpwa --prefer-dist >/dev/null 2>&1',
+                $this->phpBinary() . ' artisan vendor:publish --provider="LaravelPWA\Providers\LaravelPWAServiceProvider"',
+            ], $input, $output, workingPath: $this->directory),
+
+            "FEATURE_LARAVEL_SCHEMALESS_ATTRIBUTES" => $this->runCommands([
+                "composer require spatie/laravel-schemaless-attributes --prefer-dist >/dev/null 2>&1",
+            ], $input, $output, workingPath: $this->directory),
+
+            "FEATURE_LARAVEL_CASHIER" => $this->runCommands([
+                "composer require laravel/cashier --prefer-dist >/dev/null 2>&1",
+            ], $input, $output, workingPath: $this->directory),
+
+
         ];
 
-        $installs[$feature]();
-    }
-
-    private function installLaravelPWA(InputInterface $input, OutputInterface $output)
-    {
-        // install laravel pwa
-        $this->timeLineOutput(true, $output, "Installing Laravel PWA...");
-
-        //php artisan vendor:publish --provider="LaravelPWA\Providers\LaravelPWAServiceProvider"
-        $commands = array_filter([
-            'composer require silviolleite/laravelpwa --prefer-dist >/dev/null 2>&1',
-            $this->phpBinary() . ' artisan vendor:publish --provider="LaravelPWA\Providers\LaravelPWAServiceProvider"',
-        ]);
-
-        $this->runCommands($commands, $input, $output, workingPath: $this->directory);
-
-        $this->timeLineOutput(true, $output, "Installing Laravel PWA...",  "✅ done");
-    }
-
-    private function installLaravelSchemalessAttributes(InputInterface $input, OutputInterface $output)
-    {
-        $this->timeLineOutput(true, $output, "Installing Laravel Schemaless Attributes...");
-        $quite = ">/dev/null 2>&1";
-
-        // composer require spatie/laravel-schemaless-attributes
-        $commands = array_filter([
-            "composer require spatie/laravel-schemaless-attributes --prefer-dist $quite",
-        ]);
-
-        $this->runCommands($commands, $input, $output, workingPath: $this->directory);
-
-        $this->timeLineOutput(true, $output, "Installing Laravel Schemaless Attributes...",  "✅ done");
-    }
-
-    private function installLaravelCashier(InputInterface $input, OutputInterface $output)
-    {
-        $this->timeLineOutput(true, $output, "Installing Laravel Cashier...",  "✅ done");
+        $installs[$feature](); // run the function
     }
 
 
-    protected function commitChanges(string $message, string $directory, InputInterface $input, OutputInterface $output)
+
+    /*
+    |--------------------------------------------------------------------------
+    | Helper Functions
+    |--------------------------------------------------------------------------
+    | These functions are used to help with the setup functions above.
+    */
+
+    /*
+    |--------------------------------------------------------------------------
+    | TimeLine Output
+    |--------------------------------------------------------------------------
+    | While running through the setup, we want show the user what is happening
+    | and if it was successful or not. This function is used to output
+    | the status of the setup, while also removing the previous
+    |
+    */
+    private function timeLineOutput($eraseLastLine, $output, $message = "Installing...", $status = 'in progress')
     {
-        if (!$input->getOption('git') && $input->getOption('github') === false) {
-            return;
+
+        if ($eraseLastLine) {
+            // move cursor up and erase line
+            $output->write("\033[1A"); // Move up
+            $output->write("\033[K"); // Erase line
         }
 
-        $commands = [
-            'git add .',
-            "git commit -q -m \"$message\"",
-        ];
-
-        $this->runCommands($commands, $input, $output, workingPath: $directory);
-    }
-
-    protected function pushToGitHub(string $name, string $directory, InputInterface $input, OutputInterface $output)
-    {
-        $process = new Process(['gh', 'auth', 'status']);
-        $process->run();
-
-        if (!$process->isSuccessful()) {
-            $output->writeln('  <bg=yellow;fg=black> WARN </> Make sure the "gh" CLI tool is installed and that you\'re authenticated to GitHub. Skipping...' . PHP_EOL);
-
-            return;
-        }
-
-        $name = $input->getOption('organization') ? $input->getOption('organization') . "/$name" : $name;
-        $flags = $input->getOption('github') ?: '--private';
-
-        $commands = [
-            "gh repo create {$name} --source=. --push {$flags}",
-        ];
-
-        $this->runCommands($commands, $input, $output, workingPath: $directory, env: ['GIT_TERMINAL_PROMPT' => 0]);
+        $output->writeln("<bg=green;fg=black> $message </> $status");
     }
 
     protected function verifyApplicationDoesntExist($directory, InputInterface $input, OutputInterface $output)
@@ -715,13 +664,6 @@ class NewCommand extends Command
             throw new RuntimeException('Application already exists! ' . __FILE__ . ':' . __LINE__);
         }
     }
-
-    /*
-    |--------------------------------------------------------------------------
-    | Helper Functions
-    |--------------------------------------------------------------------------
-    | These functions are used to help with the setup functions above.
-    */
 
     protected function phpBinary()
     {
@@ -804,7 +746,6 @@ class NewCommand extends Command
             preg_replace($pattern, $replace, file_get_contents($file))
         );
     }
-
 
     private function clear()
     {
