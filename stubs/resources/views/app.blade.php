@@ -12,17 +12,8 @@
 
         <!-- Scripts -->
         <!-- FEATURE_LARAVEL_PWA:START -->
-        <!-- LARAVEL PWA -->
         @laravelPWA
-        <!-- LARAVEL PWA END -->
         <!-- FEATURE_LARAVEL_PWA:END -->
-
-
-        <!-- FEATURE_NOT_THERE:START -->
-        <!-- LARAVEL PWA -->
-        NOT IMPLEMENTED
-        <!-- LARAVEL PWA END -->
-        <!-- FEATURE_NOT_THERE:END -->
 
         @routes
         @vite(['resources/js/app.js', "resources/js/Pages/{$page['component']}.vue"])
