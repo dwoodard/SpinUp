@@ -40,9 +40,9 @@ class NewCommand extends Command
     private $features = [
         'FEATURE_LARAVEL_PWA',
         'FEATURE_LARAVEL_SCHEMALESS_ATTRIBUTES',
-        'FEATURE_LARAVEL_CASHIER',
-        'FEATURE_LARAVEL_PERMISSION',
-        'FEATURE_HEADLESS_UI',
+        // 'FEATURE_LARAVEL_CASHIER',
+        // 'FEATURE_LARAVEL_PERMISSION',
+        // 'FEATURE_HEADLESS_UI',
     ];
 
 
@@ -177,7 +177,6 @@ class NewCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
 
-        $this->debug('Excuting...', $input, $output);
 
         /*
         |--------------------------------------------------------------------------
@@ -201,9 +200,9 @@ class NewCommand extends Command
         /*  */
 
         $this->installStubs($input, $output);
+        $this->installFeatures($input, $output);
         // $this->installTemplates($input, $output);
 
-        // $this->installFeatures($input, $output);
 
 
         /*
@@ -232,7 +231,6 @@ class NewCommand extends Command
     */
     protected function handleIfExsistingProject(InputInterface $input, OutputInterface $output)
     {
-        $this->debug('handleIfExsistingProject ...', $input, $output);
 
         //  -f, --force
         // if -f is passed, delete the project if it exists
@@ -261,15 +259,13 @@ class NewCommand extends Command
     */
     protected function installLaravel(InputInterface $input, OutputInterface $output)
     {
-        $this->debug('Install Laravel...', $input, $output);
 
-        $version = $this->getVersion($input);
         $quite = $input->getOption('laravel-quiet') ? '--quiet' : '';
 
         $this->timeLineOutput(true, $output, 'Installing Laravel...');
 
         $commands = [
-            "composer create-project $quite laravel/laravel $this->directory $version --remove-vcs --prefer-dist",
+            "composer create-project $quite laravel/laravel $this->directory  --remove-vcs --prefer-dist",
         ];
 
         $this->runCommands($commands, $input, $output);
@@ -394,13 +390,11 @@ class NewCommand extends Command
             return file_exists($projectPath);
         }
 
-        $saved = null;
         // loop through the files
         foreach ($filePaths as $stubFilePath) {
             // get the contents of the file
             $contents = file_get_contents($stubFilePath);
 
-            // remove markers from stub
             // echo $stubFilePath . PHP_EOL;
             $contents = removeMarkersFromStub($contents, $features);
 
@@ -408,24 +402,15 @@ class NewCommand extends Command
                 $this->directory . '/' . str_replace('/stubs/root/', '', str_replace(dirname(__DIR__), '', $stubFilePath)) :
                 $this->directory . str_replace('/stubs', '', str_replace(dirname(__DIR__), '', $stubFilePath));
 
-
-            // save content to new destination
             $copied = saveContentToNewDestination($stubFilePath, $contents, $destinationPath);
 
             $stubFilePath = str_replace(dirname(__DIR__) . '/stubs/', '', $stubFilePath);
             $destinationPath = str_replace($this->directory . '/', '', $destinationPath);
             $fromTo = "Copied: $stubFilePath" .  " =>: $destinationPath";
 
-
             echo ($copied ? "✅" : "❌") . " $fromTo" . PHP_EOL;
         }
     }
-
-    /*
-    --------------------------------------------------------------------------
-    */
-
-
 
     /*
     |--------------------------------------------------------------------------
@@ -452,7 +437,6 @@ class NewCommand extends Command
             return;
         }
 
-        $this->debug('installLaradock...', $input, $output);
 
         $this->timeLineOutput(false, $output, 'Installing Laradock...');
 
@@ -508,7 +492,6 @@ class NewCommand extends Command
     */
     protected function installBreeze(InputInterface $input, OutputInterface $output, string $directory)
     {
-        $this->debug('Install Breeze...', $input, $output);
 
         $this->timeLineOutput(false, $output, 'Installing Breeze...');
 
@@ -539,16 +522,8 @@ class NewCommand extends Command
         );
     }
 
-    /* Setup Functions END*/
-
 
     /*
-    |--------------------------------------------------------------------------
-    | Helper Functions
-    |--------------------------------------------------------------------------
-    | These functions are used to help with the setup functions above.
-
-
     |--------------------------------------------------------------------------
     | TimeLine Output
     |--------------------------------------------------------------------------
@@ -611,7 +586,6 @@ class NewCommand extends Command
     */
     private function installTemplates(InputInterface $input, OutputInterface $output)
     {
-        $this->debug('Install Template...', $input, $output);
 
         // remove the welcome.blade.php file
         $commands = [
@@ -641,7 +615,6 @@ class NewCommand extends Command
     */
     protected function installFeatures(InputInterface $input, OutputInterface $output)
     {
-        $this->debug('Install Features...', $input, $output);
 
         $output->writeln('  <bg=blue;fg=black>' . collect($input->getOption('features'))  . PHP_EOL, OutputInterface::VERBOSITY_VERBOSE);
 
@@ -653,25 +626,15 @@ class NewCommand extends Command
 
     protected function installFeature($feature, InputInterface $input, OutputInterface $output)
     {
-        $this->debug("Install $feature...", $input, $output);
+ 
 
-        $this->timeLineOutput(false, $output, "Installing $feature...");
+        $installs = [
+            "FEATURE_LARAVEL_PWA" => $this->installLaravelPWA($input, $output),
+            "FEATURE_LARAVEL_SCHEMALESS_ATTRIBUTES" => $this->installLaravelSchemalessAttributes($input, $output),
+            "FEATURE_LARAVEL_CASHIER" => $this->installLaravelCashier($input, $output),
+        ];
 
-        switch ($feature) {
-            case 'FEATURE_LARAVEL_PWA':
-                $this->installLaravelPWA($input, $output);
-                break;
-            case 'FEATURE_LARAVEL_SCHEMALESS_ATTRIBUTES':
-                $this->installLaravelSchemalessAttributes($input, $output);
-                break;
-            case 'FEATURE_LARAVEL_CASHIER':
-                $this->installLaravelCashier($input, $output);
-                break;
-            default:
-                //  feature does not exist
-                $output->writeln('  <bg=red;fg=black> ERROR </> '  . '<fg=red>' . $feature . ' does not exist' . '</>' . PHP_EOL, OutputInterface::VERBOSITY_VERBOSE);
-                break;
-        }
+        $installs[$feature]();
     }
 
     private function installLaravelPWA(InputInterface $input, OutputInterface $output)
@@ -679,19 +642,11 @@ class NewCommand extends Command
         // install laravel pwa
         $this->timeLineOutput(true, $output, "Installing Laravel PWA...");
 
-
-
         //php artisan vendor:publish --provider="LaravelPWA\Providers\LaravelPWAServiceProvider"
         $commands = array_filter([
             'composer require silviolleite/laravelpwa --prefer-dist >/dev/null 2>&1',
             $this->phpBinary() . ' artisan vendor:publish --provider="LaravelPWA\Providers\LaravelPWAServiceProvider"',
         ]);
-        // rather than using sed, we can just replace the file
-        $this->replaceInFile(
-            '<head>',
-            '<head>' . PHP_EOL . '    @laravelPWA',
-            $this->directory . '/resources/views/app.blade.php',
-        );
 
         $this->runCommands($commands, $input, $output, workingPath: $this->directory);
 
@@ -700,36 +655,12 @@ class NewCommand extends Command
 
     private function installLaravelSchemalessAttributes(InputInterface $input, OutputInterface $output)
     {
-        $this->timeLineOutput(true, $output, "Installing Laravel PWA...");
+        $this->timeLineOutput(true, $output, "Installing Laravel Schemaless Attributes...");
         $quite = ">/dev/null 2>&1";
+
         // composer require spatie/laravel-schemaless-attributes
         $commands = array_filter([
-            // Add the package to the project
             "composer require spatie/laravel-schemaless-attributes --prefer-dist $quite",
-            // Add migration to add schemaless_attributes column to users table
-            $this->replaceFile(
-                'database/migrations/2024_01_01_000001_add_schemaless_attributes_column_to_users_table.php',
-                $this->directory . '/database/migrations/2024_01_01_000001_add_schemaless_attributes_column_to_users_table.php',
-            ),
-
-            // Add the HasSchemalessAttributes trait to the User model
-            $this->replaceInFile(
-                'use Laravel\Sanctum\HasApiTokens;',
-                'use Laravel\Sanctum\HasApiTokens;' . PHP_EOL .
-                    'use Spatie\\SchemalessAttributes\\Casts\\SchemalessAttributes;',
-                $this->directory . '/app/Models/User.php',
-            ),
-            $this->replaceInFile(
-                [
-                    "protected \$casts = [\n        'email_verified_at' => 'datetime',\n        'password' => 'hashed',\n    ];",
-                    "public function scopeWithExtraAttributes(): Builder\n    {\n        return \$this->extra_attributes->modelScope();\n    }",
-                ],
-                [
-                    "protected \$casts = [\n        'email_verified_at' => 'datetime',\n        'password' => 'hashed',\n        'settings' => SchemalessAttributes::class\n    ];",
-                    "public function scopeWithExtraAttributes(): Builder\n    {\n        return \$this->extra_attributes->modelScope();\n    }\n",
-                ],
-                $this->directory . '/app/Models/User.php'
-            )
         ]);
 
         $this->runCommands($commands, $input, $output, workingPath: $this->directory);
@@ -740,33 +671,6 @@ class NewCommand extends Command
     private function installLaravelCashier(InputInterface $input, OutputInterface $output)
     {
         $this->timeLineOutput(true, $output, "Installing Laravel Cashier...",  "✅ done");
-    }
-
-    protected function configureComposerPackages(InputInterface $input, OutputInterface $output)
-    {
-
-        if ($input->getOption('laravelpwa')) {
-            $this->requireComposerPackages(['silviolleite/laravelpwa'], $output, true);
-
-            $commands = array_filter([
-                $this->phpBinary() . ' artisan vendor:publish --provider="LaravelPWA\Providers\LaravelPWAServiceProvider"',
-                exec('find . -name "app.blade.php" -exec sed -i \'\' \'s+<head>+<head>        @laravelPWA+g\' {} \;')
-            ]);
-
-            $this->runCommands($commands, $input, $output);
-        }
-
-        if ($input->getOption('laravel-schemaless-attributes')) {
-            $this->requireComposerPackages(['spatie/laravel-schemaless-attributes'], $output, true);
-        }
-
-        if ($input->getOption('laravel-permission')) {
-            $this->requireComposerPackages(['spatie/laravel-permission'], $output, true);
-        }
-
-        if ($input->getOption('laravel-medialibrary')) {
-            $this->requireComposerPackages(['spatie/laravel-medialibrary'], $output, true);
-        }
     }
 
 
@@ -812,17 +716,12 @@ class NewCommand extends Command
         }
     }
 
-    protected function getVersion(InputInterface $input)
-    {
-        if ($input->getOption('dev')) {
-            return 'dev-master';
-        }
-
-        return '';
-    }
-
-
-
+    /*
+    |--------------------------------------------------------------------------
+    | Helper Functions
+    |--------------------------------------------------------------------------
+    | These functions are used to help with the setup functions above.
+    */
 
     protected function phpBinary()
     {
@@ -831,16 +730,6 @@ class NewCommand extends Command
         return $phpBinary !== false
             ? ProcessUtils::escapeArgument($phpBinary)
             : 'php';
-    }
-
-    protected function requireComposerPackages(array $packages, OutputInterface $output, bool $asDev = false)
-    {
-        return $this->composer->requirePackages($packages, $asDev, $output);
-    }
-
-    protected function removeComposerPackages(array $packages, OutputInterface $output, bool $asDev = false)
-    {
-        return $this->composer->removePackages($packages, $asDev, $output);
     }
 
     protected function runCommands($commands, InputInterface $input, OutputInterface $output, string $workingPath = null, array $env = [])
@@ -921,21 +810,5 @@ class NewCommand extends Command
     {
         /* some voodoo magic to clear the terminal */
         echo chr(27) . chr(91) . 'H' . chr(27) . chr(91) . 'J';
-    }
-
-    private function debug($task, $input, $output)
-    {
-
-        // if get option debug is passed, show debug info
-        if ($input->getOption('debug')) {
-            $output->writeln(
-                "<bg=blue;fg=black>$task</> " .
-                    '<fg=blue>' .
-                    __FILE__ . ':' . __LINE__ .
-                    '</>'
-                    . PHP_EOL,
-                OutputInterface::VERBOSITY_VERBOSE
-            );
-        }
     }
 }
