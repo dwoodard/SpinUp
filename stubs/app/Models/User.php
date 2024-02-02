@@ -8,12 +8,24 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 # FEATURE_LARAVEL_SCHEMALESS_ATTRIBUTES:START
+use Illuminate\Database\Eloquent\Builder;
 use Spatie\SchemalessAttributes\Casts\SchemalessAttributes;
 # FEATURE_LARAVEL_SCHEMALESS_ATTRIBUTES:END
+# FEATURE_LARAVEL_PERMISSION:START
+use Spatie\Permission\Traits\HasRoles;
+# FEATURE_LARAVEL_PERMISSION:END
 
 class User extends Authenticatable
 {
-    use HasApiTokens, HasFactory, Notifiable;
+    use HasApiTokens,
+        HasFactory,
+        Notifiable,
+        # FEATURE_LARAVEL_PERMISSION:START
+        HasRoles
+        # FEATURE_LARAVEL_PERMISSION:END
+        //;
+    ;
+
 
     /**
      * The attributes that are mass assignable.
@@ -50,9 +62,9 @@ class User extends Authenticatable
     ];
 
     # FEATURE_LARAVEL_SCHEMALESS_ATTRIBUTES:START
-    public function scopeWithExtraAttributes()
+    public function scopeWithSettings(): Builder
     {
-        return $this->extra_attributes->modelScope();
+        return $this->settings->modelScope();
     }
     # FEATURE_LARAVEL_SCHEMALESS_ATTRIBUTES:END
 }

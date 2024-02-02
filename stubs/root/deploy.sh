@@ -135,3 +135,4 @@ docker exec -it laradock-workspace-1 sh -c "php artisan migrate"
 fi
 
 $SHELL # Open a new shell to run the application
+

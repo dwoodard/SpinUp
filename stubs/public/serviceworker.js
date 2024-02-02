@@ -60,3 +60,4 @@ self.addEventListener('fetch', (event) => {
 self.addEventListener('message', (event) => {
   // console.log('message serviceworker.js', event);
 });
+

@@ -1,7 +1,32 @@
 #TODO
 
-- fix Installing Stubs... show stub instead
-- work on the layout both for admin and public
+ 
+- Install Layout Templates
+  - we all ready have a lot through breeze
+    - tailwindcss
+    - vue 3
+    - vite
+    - inertia
+  - we'll have 3 layouts
+    - admin
+      - admin will have these features
+        - users/roles/permissions
+        - telescope - for tracking the site usage
+        - site settings
+          - site name
+          - site logo
+          - site favicon
+          - site description
+          - site keywords
+        -   
+    - public
+    - auth
+    
+- PHP Helpers File
+  - create a file in app/Helpers.php
+    - this file will contain all the helper functions like:
+      - 
+
 
 - DELETE `resources/views/layouts/welcome.blade.php`
 - CP Stub `resources/js/Pages/Welcome.vue`

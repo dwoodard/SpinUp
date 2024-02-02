@@ -39,11 +39,14 @@ class NewCommand extends Command
     // Features must follow the naming convention of FEATURE_[NAME_OF_FEATURE]
     private $features = [
         'FEATURE_LARAVEL_PWA',
+        'FEATURE_LARAVEL_PERMISSION',
         'FEATURE_LARAVEL_SCHEMALESS_ATTRIBUTES',
+        'FEATURE_LARAVEL_TELESCOPE',
+        'FEATURE_VENTURECRAFT_REVISIONABLE'
         // 'FEATURE_LARAVEL_CASHIER',
-        // 'FEATURE_LARAVEL_PERMISSION',
         // 'FEATURE_HEADLESS_UI',
     ];
+
 
 
     public function __construct()
@@ -190,9 +193,7 @@ class NewCommand extends Command
 
         $this->installStubs($input, $output);
         $this->installFeatures($input, $output);
-        // $this->installTemplates($input, $output);
-
-
+        $this->installLayout($input, $output);
 
         /*
         |--------------------------------------------------------------------------
@@ -204,8 +205,6 @@ class NewCommand extends Command
         // $this->copySeeders($input, $output);
 
         $this->ShowHowProjectRuns($input, $output);
-
-
 
         return 0;
     }
@@ -271,7 +270,7 @@ class NewCommand extends Command
     */
     private function installStubs(InputInterface $input, OutputInterface $output)
     {
-        // $this->timeLineOutput(false, $output, 'Installing Stubs...');
+        $this->timeLineOutput(false, $output, 'Installing Stubs...');
 
         // create Filesystem object
         $filesystem = new Filesystem();
@@ -279,24 +278,23 @@ class NewCommand extends Command
         // get list of features (in in array, its toggled on)
         $features = collect($input->getOption('features'));
         // echo $features->join(PHP_EOL) . PHP_EOL;
-        // die();
 
         // get all the files in the stubs directory
         $filePaths = collect($filesystem->allFiles(dirname(__DIR__) . '/stubs'))->map(
             fn ($file) => ($file->getPathname())
         );
         // echo $filePaths->join(PHP_EOL) . PHP_EOL;
-        // die();
+
 
 
         function removeMarkersFromStub($content, $features)
         {
             // for each line in the file
             $result = '';
-            $hasFeature = false;
-            $inFeature = false;
-            $lines = explode(PHP_EOL, $content);
-            $deleteBlock = false;
+            $hasFeature = false; // use to check if the feature is toggled on
+            $inFeature = false; // use to check if we are in the block of a feature (between the markers START and END)
+            $lines = explode(PHP_EOL, $content); // convert the content to an array of lines
+            $deleteBlock = false; // use to check if we should delete the block of the feature
 
             foreach ($lines as $key => $line) {
                 // we'll use a negative approach to skip line or add it to the result
@@ -328,8 +326,6 @@ class NewCommand extends Command
                     }
                 }
 
-
-
                 // check if the line is the end of the block,
                 // if so, set deleteBlock to false and continue
 
@@ -340,15 +336,10 @@ class NewCommand extends Command
 
                     continue;
                 }
+
                 if ($deleteBlock && $inFeature) {
                     continue;
                 }
-
-
-
-
-
-
 
                 $result .= $line . PHP_EOL;
             }
@@ -403,6 +394,8 @@ class NewCommand extends Command
             $fromTo = "Copied: $stubFilePath" .  " =>: $destinationPath";
 
             echo ($copied ? "✅" : "❌") . " $fromTo" . PHP_EOL;
+
+            // $this->timeLineOutput(true, $output, 'Installing Stubs...',  "✅ done");
         }
     }
 
@@ -544,26 +537,25 @@ class NewCommand extends Command
 
     /*
     |--------------------------------------------------------------------------
-    | Install Componets/Template Packages
+    | Install Layout Templates
     |--------------------------------------------------------------------------
-    | Using Breeze as a base, we can install other packages that
-    | are commonly used in Laravel projects. These include
-    | Laravel PWA, Laravel Schemaless Attributes,
+        Using Breeze as a base, we can install other packages that
+        are commonly used in Laravel projects. These include
+        Laravel PWA, Laravel Schemaless Attributes,
 
-    | Tailwind CSS, Vue Components, Headless UI, Etc.
-    |
-    | Because we are using Breeze as a base, we'll base the template off of that.
-    |
-    | we'll move dashboard to a set of admin routes, and then we'll have a set of
-    | - remove from routes/web.php
-    | - copy stubs/routes/admin.php to routes/admin.php
-    | - copy stubs/resources/views/admin to resources/views/admin
+        Tailwind CSS, Vue Components, Headless UI, Etc.
+
+        we'll move dashboard to a set of admin routes, and then we'll have a set of
+        - remove from routes/web.php
+        - copy stubs/routes/admin.php to routes/admin.php
+        - copy stubs/resources/views/admin to resources/views/admin
     */
-    private function installTemplates(InputInterface $input, OutputInterface $output)
+    private function installLayout(InputInterface $input, OutputInterface $output)
     {
 
         // remove the welcome.blade.php file
         $commands = [
+            //remove the resources/views/welcome.blade.php file
             "rm -rf $this->projectDirectory/resources/views/welcome.blade.php",
 
         ];
@@ -591,35 +583,65 @@ class NewCommand extends Command
     protected function installFeatures(InputInterface $input, OutputInterface $output)
     {
 
-        $output->writeln('  <bg=blue;fg=black>' . collect($input->getOption('features'))  . PHP_EOL, OutputInterface::VERBOSITY_VERBOSE);
+        $output->writeln('  <bg=blue;fg=black>' . collect($input->getOption('features')) . '</> ' . PHP_EOL, OutputInterface::VERBOSITY_VERBOSE);
 
-        // loop through the features and install them
+        // loop through the features and install them, if they are toggled on
         foreach ($input->getOption('features') as $feature) {
-            $this->installFeature($feature, $input, $output);
+            $this->installFeature($feature, $input, $output)();
         }
     }
 
     protected function installFeature($feature, InputInterface $input, OutputInterface $output)
     {
+
         $installs = [
-            "FEATURE_LARAVEL_PWA" => $this->runCommands([
-                'composer require silviolleite/laravelpwa --prefer-dist >/dev/null 2>&1',
-                $this->phpBinary() . ' artisan vendor:publish --provider="LaravelPWA\Providers\LaravelPWAServiceProvider"',
-            ], $input, $output, workingPath: $this->projectDirectory),
+            "" => function () {
+                return 'No feature selected';
+            },
 
-            "FEATURE_LARAVEL_SCHEMALESS_ATTRIBUTES" => $this->runCommands([
-                "composer require spatie/laravel-schemaless-attributes --prefer-dist >/dev/null 2>&1",
-            ], $input, $output, workingPath: $this->projectDirectory),
+            "FEATURE_LARAVEL_PWA" => function () use ($input, $output) {
+                $this->runCommands([
+                    'composer require silviolleite/laravelpwa --prefer-dist',
+                    $this->phpBinary() . ' artisan vendor:publish --provider="LaravelPWA\Providers\LaravelPWAServiceProvider"',
+                ], $input, $output, workingPath: $this->projectDirectory);
+            },
 
-            "FEATURE_LARAVEL_CASHIER" => $this->runCommands([
-                "composer require laravel/cashier --prefer-dist >/dev/null 2>&1",
-            ], $input, $output, workingPath: $this->projectDirectory),
+            "FEATURE_LARAVEL_PERMISSION" => function () use ($input, $output) {
+                $this->runCommands([
+                    "composer require spatie/laravel-permission --prefer-dist",
+                    $this->phpBinary() . ' artisan vendor:publish --provider="Spatie\Permission\PermissionServiceProvider"',
+                ], $input, $output, workingPath: $this->projectDirectory);
+            },
+
+            "FEATURE_LARAVEL_SCHEMALESS_ATTRIBUTES" => function () use ($input, $output) {
+                $this->runCommands([
+                    "composer require spatie/laravel-schemaless-attributes --prefer-dist ",
+                ], $input, $output, workingPath: $this->projectDirectory);
+            },
+
+            "FEATURE_LARAVEL_CASHIER" => function () use ($input, $output) {
+                $this->runCommands([
+                    "composer require laravel/cashier",
+                ], $input, $output, workingPath: $this->projectDirectory);
+            },
+            "FEATURE_LARAVEL_TELESCOPE" => function () use ($input, $output) {
+                $this->runCommands([
+                    "composer require laravel/telescope ",
+                    $this->phpBinary() . ' artisan telescope:install',
+                ], $input, $output, workingPath: $this->projectDirectory);
+            },
+            "FEATURE_VENTURECRAFT_REVISIONABLE" => function () use ($input, $output) {
+                $this->runCommands([
+                    "composer require venturecraft/revisionable",
+                ], $input, $output, workingPath: $this->projectDirectory);
+            },
 
 
         ];
-        $feature;
-        die();
-        $installs[$feature](); // run the function
+
+
+
+        return $installs[$feature];
     }
 
 
