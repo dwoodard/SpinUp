@@ -16,11 +16,10 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Process\PhpExecutableFinder;
 use Symfony\Component\Process\Process;
 
-use function Laravel\Prompts\confirm;
-use function Laravel\Prompts\multiselect;
-use function Laravel\Prompts\select;
-use function Laravel\Prompts\text;
-use function Laravel\Prompts\progress;
+use function Laravel\Prompts\confirm; // confirm('Would you like to install Laradock?');
+use function Laravel\Prompts\multiselect; // multiselect('Which features would you like to install?', $this->features, $this->features);
+use function Laravel\Prompts\text; // text('What is your name?', 'John Doe');
+use function Laravel\Prompts\select; // select('What is your favorite color?', ['red', 'blue', 'green'], 'blue');
 
 class NewCommand extends Command
 {
@@ -105,9 +104,6 @@ class NewCommand extends Command
             );
         }
     }
-
-
-
 
 
 
@@ -341,7 +337,10 @@ class NewCommand extends Command
                     continue;
                 }
 
-                $result .= $line . PHP_EOL;
+                // is this the last line, if so, don't add a new line
+                $result .= $key === count($lines) - 1 ?
+                    $line :
+                    $line . PHP_EOL;
             }
             return $result;
         }
@@ -602,20 +601,20 @@ class NewCommand extends Command
             "FEATURE_LARAVEL_PWA" => function () use ($input, $output) {
                 $this->runCommands([
                     'composer require silviolleite/laravelpwa --prefer-dist',
-                    $this->phpBinary() . ' artisan vendor:publish --provider="LaravelPWA\Providers\LaravelPWAServiceProvider"',
+                    'php artisan vendor:publish --provider="LaravelPWA\Providers\LaravelPWAServiceProvider"',
                 ], $input, $output, workingPath: $this->projectDirectory);
             },
 
             "FEATURE_LARAVEL_PERMISSION" => function () use ($input, $output) {
                 $this->runCommands([
-                    "composer require spatie/laravel-permission --prefer-dist",
-                    $this->phpBinary() . ' artisan vendor:publish --provider="Spatie\Permission\PermissionServiceProvider"',
+                    "composer require spatie/laravel-permission",
+                    'php artisan vendor:publish --provider="Spatie\Permission\PermissionServiceProvider"',
                 ], $input, $output, workingPath: $this->projectDirectory);
             },
 
             "FEATURE_LARAVEL_SCHEMALESS_ATTRIBUTES" => function () use ($input, $output) {
                 $this->runCommands([
-                    "composer require spatie/laravel-schemaless-attributes --prefer-dist ",
+                    "composer require spatie/laravel-schemaless-attributes",
                 ], $input, $output, workingPath: $this->projectDirectory);
             },
 
@@ -627,19 +626,17 @@ class NewCommand extends Command
             "FEATURE_LARAVEL_TELESCOPE" => function () use ($input, $output) {
                 $this->runCommands([
                     "composer require laravel/telescope ",
-                    $this->phpBinary() . ' artisan telescope:install',
+                    'php artisan telescope:install',
                 ], $input, $output, workingPath: $this->projectDirectory);
             },
             "FEATURE_VENTURECRAFT_REVISIONABLE" => function () use ($input, $output) {
                 $this->runCommands([
                     "composer require venturecraft/revisionable",
+                    "php artisan vendor:publish --provider='Venturecraft\Revisionable\RevisionableServiceProvider'",
                 ], $input, $output, workingPath: $this->projectDirectory);
             },
 
-
         ];
-
-
 
         return $installs[$feature];
     }

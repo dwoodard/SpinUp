@@ -1,12 +1,16 @@
 #!/usr/bin/env bash
 # Example useage: [root of project] ./deploy.sh
 
+# docker-compose commands
+
 if [ ${1:-1} == 'down' ]; then
   cd laradock || exit
   docker-compose down
   cd ..
   exit 0
 fi
+
+# ----------------------------------
 
 export COMPOSER_ALLOW_SUPERUSER=1
 
@@ -107,10 +111,15 @@ else
   echo 'npm was installed'
 fi
 
-# run migrations
+# fresh
 if [ ${1:-1} == 'fresh' ]; then
   docker exec -it laradock-workspace-1 sh -c "php artisan migrate:fresh"
-else
+fi
+
+# fresh --seed
+if [ ${1:-1} == 'seed' ]; then
+  docker exec -it laradock-workspace-1 sh -c "php artisan migrate:fresh --seed"
+fi
 
 
 # check if mysql is running
@@ -132,7 +141,5 @@ while ! docker exec -it laradock-mysql-1 sh -c "mysql -u root -proot -e \"use $D
 done
 
 docker exec -it laradock-workspace-1 sh -c "php artisan migrate"
-fi
 
 $SHELL # Open a new shell to run the application
-

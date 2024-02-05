@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Gate;
 use Laravel\Telescope\IncomingEntry;
 use Laravel\Telescope\Telescope;
 use Laravel\Telescope\TelescopeApplicationServiceProvider;
+use App\Models\User;
 
 class TelescopeServiceProvider extends TelescopeApplicationServiceProvider
 {
@@ -24,10 +25,10 @@ class TelescopeServiceProvider extends TelescopeApplicationServiceProvider
             }
 
             return $entry->isReportableException() ||
-                   $entry->isFailedRequest() ||
-                   $entry->isFailedJob() ||
-                   $entry->isScheduledTask() ||
-                   $entry->hasMonitoredTag();
+                $entry->isFailedRequest() ||
+                $entry->isFailedJob() ||
+                $entry->isScheduledTask() ||
+                $entry->hasMonitoredTag();
         });
     }
 
@@ -63,4 +64,3 @@ class TelescopeServiceProvider extends TelescopeApplicationServiceProvider
         });
     }
 }
-

@@ -25,7 +25,9 @@ return new class extends Migration
             $table->string('city')->nullable();
             $table->string('state')->nullable();
             $table->string('zip')->nullable();
+            // FEATURE_LARAVEL_SCHEMALESS_ATTRIBUTES:START
             $table->schemalessAttributes('settings');
+            // FEATURE_LARAVEL_SCHEMALESS_ATTRIBUTES:END
             $table->rememberToken();
             $table->timestamps();
         });
@@ -39,4 +41,3 @@ return new class extends Migration
         Schema::dropIfExists('users');
     }
 };
-
