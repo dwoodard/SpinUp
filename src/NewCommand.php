@@ -503,7 +503,7 @@ class NewCommand extends Command
 
         $output->writeln(
             PHP_EOL .
-                "cd $this->projectDirectory  && ./deploy.sh"
+                "cd $this->projectDirectory && ./deploy.sh seed"
                 . PHP_EOL
         );
     }
