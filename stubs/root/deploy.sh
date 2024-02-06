@@ -23,7 +23,7 @@ echo "--- node: $(node -v || echo 'run: node install') ---"
 echo "--- docker: $(docker -v | awk '{print $3}'  ) ---"
 echo "--- docker-compose: $(docker-compose -v) ---"
 
-# check if both .env exist
+# check if .env exist
 if [ ! -f ".env" ]; then
     cp .env.example .env
     echo '.env Added '
@@ -111,16 +111,9 @@ else
   echo 'npm was installed'
 fi
 
-# fresh
-if [ ${1:-1} == 'fresh' ]; then
-  docker exec -it laradock-workspace-1 sh -c "php artisan migrate:fresh"
-fi
 
-# fresh --seed
-if [ ${1:-1} == 'seed' ]; then
-  docker exec -it laradock-workspace-1 sh -c "php artisan migrate:fresh --seed"
-fi
 
+# When all of the above checks are done we can start the application, but we need to wait for mysql to start
 
 # check if mysql is running
 wait_time=0
@@ -139,6 +132,19 @@ while ! docker exec -it laradock-mysql-1 sh -c "mysql -u root -proot -e \"use $D
     ((wait_time++))
     sleep 1
 done
+
+# fresh
+if [ ${1:-1} == 'fresh' ]; then
+  docker exec -it laradock-workspace-1 sh -c "php artisan migrate:fresh"
+fi
+
+# fresh --seed
+if [ ${1:-1} == 'seed' ]; then
+  docker exec -it laradock-workspace-1 sh -c "php artisan migrate:fresh --seed"
+fi
+
+
+
 
 docker exec -it laradock-workspace-1 sh -c "php artisan migrate"
 

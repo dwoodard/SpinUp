@@ -190,6 +190,11 @@ class NewCommand extends Command
         $this->installStubs($input, $output);
         $this->installFeatures($input, $output);
         $this->installLayout($input, $output);
+        $this->installNpmPackages($input, $output);
+
+
+
+        $this->installSetup($input, $output);
 
         /*
         |--------------------------------------------------------------------------
@@ -567,6 +572,26 @@ class NewCommand extends Command
          */
     }
 
+    private function installNpmPackages(InputInterface $input, OutputInterface $output)
+    {
+        $commands = [
+            'npm install @headlessui/vue',
+            'npm install @heroicons/vue',
+            // 'npm install @vueuse/core @vueuse/components',
+
+        ];
+    }
+
+    private function installSetup(InputInterface $input, OutputInterface $output)
+    {
+        $commands = [
+            'npm install',
+            'npm run build',
+            './deploy.sh seed',
+        ];
+        $this->runCommands($commands, $input, $output, workingPath: $this->projectDirectory);
+    }
+
 
 
 
@@ -594,10 +619,6 @@ class NewCommand extends Command
     {
 
         $installs = [
-            "" => function () {
-                return 'No feature selected';
-            },
-
             "FEATURE_LARAVEL_PWA" => function () use ($input, $output) {
                 $this->runCommands([
                     'composer require silviolleite/laravelpwa --prefer-dist',
