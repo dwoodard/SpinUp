@@ -29,16 +29,13 @@ class User extends Authenticatable
     # FEATURE_LARAVEL_PERMISSION:START
     use HasRoles;
     # FEATURE_LARAVEL_PERMISSION:END
-
     # FEATURE_VENTURECRAFT_REVISIONABLE:START
     use RevisionableTrait;
     # FEATURE_VENTURECRAFT_REVISIONABLE:END
-    //;
-
 
     # FEATURE_VENTURECRAFT_REVISIONABLE:START
-    #protected $revisionEnabled = true;
-    #protected $historyLimit = 500; //Stop tracking revisions after 500 changes have been made.
+    protected $revisionEnabled = true;
+    protected $historyLimit = 500; //Stop tracking revisions after 500 changes have been made.
     # FEATURE_VENTURECRAFT_REVISIONABLE:END
 
 
