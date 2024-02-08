@@ -7,24 +7,39 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+
 # FEATURE_LARAVEL_SCHEMALESS_ATTRIBUTES:START
 use Illuminate\Database\Eloquent\Builder;
 use Spatie\SchemalessAttributes\Casts\SchemalessAttributes;
 # FEATURE_LARAVEL_SCHEMALESS_ATTRIBUTES:END
+
 # FEATURE_LARAVEL_PERMISSION:START
 use Spatie\Permission\Traits\HasRoles;
 # FEATURE_LARAVEL_PERMISSION:END
 
+# FEATURE_VENTURECRAFT_REVISIONABLE:START
+use Venturecraft\Revisionable\RevisionableTrait;
+# FEATURE_VENTURECRAFT_REVISIONABLE:END
+
 class User extends Authenticatable
 {
-    use HasApiTokens,
-        HasFactory,
-        Notifiable,
-        # FEATURE_LARAVEL_PERMISSION:START
-        HasRoles
-        # FEATURE_LARAVEL_PERMISSION:END
-        //;
-    ;
+    use HasApiTokens;
+    use HasFactory;
+    use Notifiable;
+    # FEATURE_LARAVEL_PERMISSION:START
+    use HasRoles;
+    # FEATURE_LARAVEL_PERMISSION:END
+
+    # FEATURE_VENTURECRAFT_REVISIONABLE:START
+    use RevisionableTrait;
+    # FEATURE_VENTURECRAFT_REVISIONABLE:END
+    //;
+
+
+    # FEATURE_VENTURECRAFT_REVISIONABLE:START
+    #protected $revisionEnabled = true;
+    #protected $historyLimit = 500; //Stop tracking revisions after 500 changes have been made.
+    # FEATURE_VENTURECRAFT_REVISIONABLE:END
 
 
     /**
@@ -33,9 +48,16 @@ class User extends Authenticatable
      * @var array<int, string>
      */
     protected $fillable = [
-        'name',
+        'first_name',
+        'last_name',
+        'username',
         'email',
         'password',
+        'phone',
+        'address',
+        'city',
+        'state',
+        'zip',
     ];
 
     /**

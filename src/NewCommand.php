@@ -187,10 +187,10 @@ class NewCommand extends Command
         $this->installLaradock($input, $output);
         /*  */
 
-        $this->installStubs($input, $output);
         $this->installFeatures($input, $output);
-        $this->installLayout($input, $output);
         $this->installNpmPackages($input, $output);
+        $this->installStubs($input, $output);
+        $this->installLayout($input, $output);
 
 
 
@@ -634,7 +634,7 @@ class NewCommand extends Command
             "FEATURE_LARAVEL_PERMISSION" => function () use ($input, $output) {
                 $this->runCommands([
                     "composer require spatie/laravel-permission",
-                    'php artisan vendor:publish --provider="Spatie\Permission\PermissionServiceProvider"',
+                    // 'php artisan vendor:publish --provider="Spatie\Permission\PermissionServiceProvider"',
                 ], $input, $output, workingPath: $this->projectDirectory);
             },
 
@@ -652,12 +652,15 @@ class NewCommand extends Command
             "FEATURE_LARAVEL_TELESCOPE" => function () use ($input, $output) {
                 $this->runCommands([
                     "composer require laravel/telescope ",
+                    //wait for the composer require to finish before running the next command
+                    'while [ ! -d "vendor/laravel/telescope" ]; do sleep 1; done',
                     'php artisan telescope:install',
                 ], $input, $output, workingPath: $this->projectDirectory);
             },
             "FEATURE_VENTURECRAFT_REVISIONABLE" => function () use ($input, $output) {
                 $this->runCommands([
                     "composer require venturecraft/revisionable",
+                    'php artisan package:discover',
                     "php artisan vendor:publish --provider='Venturecraft\Revisionable\RevisionableServiceProvider'",
                 ], $input, $output, workingPath: $this->projectDirectory);
             },
