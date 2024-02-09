@@ -263,145 +263,7 @@ class NewCommand extends Command
         $this->timeLineOutput(true, $output, 'Installing Laravel...',  "✅ done");
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | Stubs
-    |--------------------------------------------------------------------------
-    | Copy stub files from the stubs directory to the project directory.
-    */
-    private function installStubs(InputInterface $input, OutputInterface $output)
-    {
-        $this->timeLineOutput(false, $output, 'Installing Stubs...');
 
-        // create Filesystem object
-        $filesystem = new Filesystem();
-
-        // get list of features (in in array, its toggled on)
-        $features = collect($input->getOption('features'));
-        // echo $features->join(PHP_EOL) . PHP_EOL;
-
-        // get all the files in the stubs directory
-        $filePaths = collect($filesystem->allFiles(dirname(__DIR__) . '/stubs'))->map(
-            fn ($file) => ($file->getPathname())
-        );
-        // echo $filePaths->join(PHP_EOL) . PHP_EOL;
-
-
-
-        function removeMarkersFromStub($content, $features)
-        {
-            // for each line in the file
-            $result = '';
-            $hasFeature = false; // use to check if the feature is toggled on
-            $inFeature = false; // use to check if we are in the block of a feature (between the markers START and END)
-            $lines = explode(PHP_EOL, $content); // convert the content to an array of lines
-            $deleteBlock = false; // use to check if we should delete the block of the feature
-
-            foreach ($lines as $key => $line) {
-                // we'll use a negative approach to skip line or add it to the result
-
-                /*
-                    this could happen where the feature is set but not in the array
-                    # FEATURE_WHERE_TAG_DOES_NOT_EXIST:START
-                    # My flags should be deleted regardless of the tag because they are not in the array
-                    # FEATURE_WHERE_TAG_DOES_NOT_EXIST:END
-
-                    when this is the case, we should delete the lines until the end of the block
-                    call this: deleteBlock
-                */
-
-                // is the line a feature or in the block of a feature
-                if (preg_match('/(FEATURE_.*):START.*/', $line, $matches)) {
-                    $hasFeature = $features->contains($matches[1]);
-                    $inFeature = true; // use to check if we are in the block of a feature
-
-                    if ($hasFeature) {
-                        $deleteBlock = false;
-                        $inFeature = true;
-                        continue;
-                    } else {
-                        $deleteBlock = true;
-                        $inFeature = true;
-                        $hasFeature = false;
-                        continue;
-                    }
-                }
-
-                // check if the line is the end of the block,
-                // if so, set deleteBlock to false and continue
-
-                if (preg_match('/(FEATURE_.*):END.*/', $line, $matches)) {
-                    $deleteBlock = false;
-                    $inFeature = false;
-                    $hasFeature = false;
-
-                    continue;
-                }
-
-                if ($deleteBlock && $inFeature) {
-                    continue;
-                }
-
-                // is this the last line, if so, don't add a new line
-                $result .= $key === count($lines) - 1 ?
-                    $line :
-                    $line . PHP_EOL;
-            }
-            return $result;
-        }
-
-        function saveContentToNewDestination($stubFilePath, $fileContentModified, $projectPath)
-        {
-            // we need to take the $contents and save it to the new destination (root or sub directory)
-
-
-
-            // check if the directory exists for the file
-            // if not, create it
-            if (!file_exists(dirname($projectPath))) {
-                mkdir(dirname($projectPath), 0755, true);
-            }
-
-            // Copy the file to the project directory
-            if (copy($stubFilePath, $projectPath)) {
-                // Set the permissions to 0755
-                chmod($projectPath, 0755);
-            }
-
-            // use fileContentModified to save the content to the new destination
-            file_put_contents($projectPath, $fileContentModified);
-
-            return file_exists($projectPath);
-        }
-
-        // loop through the files
-        foreach ($filePaths as $stubFilePath) {
-
-            if (!$input->getOption('debug') && str_contains($stubFilePath, '__example__')) {
-                continue;
-            }
-
-            // get the contents of the file
-            $contents = file_get_contents($stubFilePath);
-
-            // echo $stubFilePath . PHP_EOL;
-            $contents = removeMarkersFromStub($contents, $features);
-
-            $destinationPath = str_contains($stubFilePath, '/stubs/root/') ?
-                $this->projectDirectory . '/' . str_replace('/stubs/root/', '', str_replace(dirname(__DIR__), '', $stubFilePath)) :
-                $this->projectDirectory . str_replace('/stubs', '', str_replace(dirname(__DIR__), '', $stubFilePath));
-
-            $copied = saveContentToNewDestination($stubFilePath, $contents, $destinationPath);
-
-            $stubFilePath = str_replace(dirname(__DIR__) . '/stubs/', '', $stubFilePath);
-            $destinationPath = str_replace($this->projectDirectory . '/', '', $destinationPath);
-            $fromTo = "Copied: $stubFilePath" .  " =>: $destinationPath";
-
-            echo ($copied ? "✅" : "❌") . " $fromTo" . PHP_EOL;
-
-            // $this->timeLineOutput(true, $output, 'Installing Stubs...',  "✅ done");
-        }
-    }
 
     /*
     |--------------------------------------------------------------------------
@@ -567,24 +429,163 @@ class NewCommand extends Command
 
         $this->timeLineOutput(false, $output, 'Installing Template...');
 
-        /*
-            stubs/resources/views/app.blade.php
-         */
+        /* stubs/resources/views/app.blade.php */
     }
 
     private function installNpmPackages(InputInterface $input, OutputInterface $output)
     {
         $commands = [
+            'npm install @headlessui/vue',
+            'npm install @heroicons/vue',
+            'npm install @vueuse/core @vueuse/components',
+
             'npm i eslint-plugin-prettier-vue --save-dev',
             'npm i eslint-plugin-vue --save-dev',
             'npm i eslint-config-prettier --save-dev',
             'npm install prettier --save-dev',
-            'npm install @headlessui/vue',
-            'npm install @heroicons/vue',
-            'npm install @vueuse/core @vueuse/components',
         ];
 
         $this->runCommands($commands, $input, $output, workingPath: $this->projectDirectory);
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Stubs
+    |--------------------------------------------------------------------------
+    | Copy stub files from the stubs directory to the project directory.
+    */
+    private function installStubs(InputInterface $input, OutputInterface $output)
+    {
+        $this->timeLineOutput(false, $output, 'Installing Stubs...');
+
+        // create Filesystem object
+        $filesystem = new Filesystem();
+
+        // get list of features (in in array, its toggled on)
+        $features = collect($input->getOption('features'));
+        // echo $features->join(PHP_EOL) . PHP_EOL;
+
+        // get all the files in the stubs directory
+        $filePaths = collect($filesystem->allFiles(dirname(__DIR__) . '/stubs'))->map(
+            fn ($file) => ($file->getPathname())
+        );
+        // echo $filePaths->join(PHP_EOL) . PHP_EOL;
+
+
+
+        function removeMarkersFromStub($content, $features)
+        {
+            // for each line in the file
+            $result = '';
+            $hasFeature = false; // use to check if the feature is toggled on
+            $inFeature = false; // use to check if we are in the block of a feature (between the markers START and END)
+            $lines = explode(PHP_EOL, $content); // convert the content to an array of lines
+            $deleteBlock = false; // use to check if we should delete the block of the feature
+
+            foreach ($lines as $key => $line) {
+                // we'll use a negative approach to skip line or add it to the result
+
+                /*
+                    this could happen where the feature is set but not in the array
+                    # FEATURE_WHERE_TAG_DOES_NOT_EXIST:START
+                    # My flags should be deleted regardless of the tag because they are not in the array
+                    # FEATURE_WHERE_TAG_DOES_NOT_EXIST:END
+
+                    when this is the case, we should delete the lines until the end of the block
+                    call this: deleteBlock
+                */
+
+                // is the line a feature or in the block of a feature
+                if (preg_match('/(FEATURE_.*):START.*/', $line, $matches)) {
+                    $hasFeature = $features->contains($matches[1]);
+                    $inFeature = true; // use to check if we are in the block of a feature
+
+                    if ($hasFeature) {
+                        $deleteBlock = false;
+                        $inFeature = true;
+                        continue;
+                    } else {
+                        $deleteBlock = true;
+                        $inFeature = true;
+                        $hasFeature = false;
+                        continue;
+                    }
+                }
+
+                // check if the line is the end of the block,
+                // if so, set deleteBlock to false and continue
+
+                if (preg_match('/(FEATURE_.*):END.*/', $line, $matches)) {
+                    $deleteBlock = false;
+                    $inFeature = false;
+                    $hasFeature = false;
+
+                    continue;
+                }
+
+                if ($deleteBlock && $inFeature) {
+                    continue;
+                }
+
+                // is this the last line, if so, don't add a new line
+                $result .= $key === count($lines) - 1 ?
+                    $line :
+                    $line . PHP_EOL;
+            }
+            return $result;
+        }
+
+        function saveContentToNewDestination($stubFilePath, $fileContentModified, $projectPath)
+        {
+            // we need to take the $contents and save it to the new destination (root or sub directory)
+
+
+
+            // check if the directory exists for the file
+            // if not, create it
+            if (!file_exists(dirname($projectPath))) {
+                mkdir(dirname($projectPath), 0755, true);
+            }
+
+            // Copy the file to the project directory
+            if (copy($stubFilePath, $projectPath)) {
+                // Set the permissions to 0755
+                chmod($projectPath, 0755);
+            }
+
+            // use fileContentModified to save the content to the new destination
+            file_put_contents($projectPath, $fileContentModified);
+
+            return file_exists($projectPath);
+        }
+
+        // loop through the files
+        foreach ($filePaths as $stubFilePath) {
+
+            if (!$input->getOption('debug') && str_contains($stubFilePath, '__example__')) {
+                continue;
+            }
+
+            // get the contents of the file
+            $contents = file_get_contents($stubFilePath);
+
+            // echo $stubFilePath . PHP_EOL;
+            $contents = removeMarkersFromStub($contents, $features);
+
+            $destinationPath = str_contains($stubFilePath, '/stubs/root/') ?
+                $this->projectDirectory . '/' . str_replace('/stubs/root/', '', str_replace(dirname(__DIR__), '', $stubFilePath)) :
+                $this->projectDirectory . str_replace('/stubs', '', str_replace(dirname(__DIR__), '', $stubFilePath));
+
+            $copied = saveContentToNewDestination($stubFilePath, $contents, $destinationPath);
+
+            $stubFilePath = str_replace(dirname(__DIR__) . '/stubs/', '', $stubFilePath);
+            $destinationPath = str_replace($this->projectDirectory . '/', '', $destinationPath);
+            $fromTo = "Copied: $stubFilePath" .  " =>: $destinationPath";
+
+            echo ($copied ? "✅" : "❌") . " $fromTo" . PHP_EOL;
+
+            // $this->timeLineOutput(true, $output, 'Installing Stubs...',  "✅ done");
+        }
     }
 
     private function installSetup(InputInterface $input, OutputInterface $output)
