@@ -170,7 +170,7 @@ return [
         App\Providers\RouteServiceProvider::class,
         App\Providers\TelescopeServiceProvider::class,
         // FEATURE_VENTURECRAFT_REVISIONABLE:START
-        #Venturecraft\Revisionable\RevisionableServiceProvider::class,
+        Venturecraft\Revisionable\RevisionableServiceProvider::class,
         // FEATURE_VENTURECRAFT_REVISIONABLE:END
 
     ])->toArray(),
