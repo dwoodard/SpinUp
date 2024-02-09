@@ -13,11 +13,11 @@
         - users/roles/permissions
         - telescope - for tracking the site usage
         - site settings
-          - site name
-          - site logo
-          - site favicon
-          - site description
-          - site keywords
+          - name
+          - logo
+          - favicon
+          - description
+          - keywords
         -   
     - public
     - auth
