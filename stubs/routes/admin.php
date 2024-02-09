@@ -15,8 +15,6 @@ Route::group(['as' => 'admin.', 'middleware' => ['web', 'role:admin|superadmin']
     Route::resource('users', 'Admin\UserController');
 
 
-    
-
     //settings
     Route::resource('site-settings', 'Admin\SiteSettingController');
 });
