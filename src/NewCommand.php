@@ -191,8 +191,6 @@ class NewCommand extends Command
         $this->installLaradock($input, $output);
         $this->commitGitProject($input, $output, 'Install Laradock');
 
-        /*  */
-
         $this->installFeatures($input, $output);
 
         $this->installNpmPackages($input, $output);
@@ -324,11 +322,9 @@ class NewCommand extends Command
             workingPath: $this->projectDirectory,
         );
 
-
         $process->isSuccessful() ?
             $this->timeLineOutput(true, $output, 'Installing Laradock...',  "✅ done") :
             $this->timeLineOutput(true, $output, 'Installing Laradock...',  "❌ failed");
-
 
         // now that it is cloned, we can run command in the directory
 
@@ -390,9 +386,9 @@ class NewCommand extends Command
             $commands[] = "git init";
             $message = $message ?: "Initial commit";
         }
-
-        $commands[] = "git add .";
-        $commands[] = "git commit -m '$message'";
+        $quite = ">/dev/null 2>&1";
+        $commands[] = "git add . $quite";
+        $commands[] = "git commit -m '$message' $quite";
 
         $this->runCommands($commands, $input, $output, workingPath: $this->projectDirectory);
 
