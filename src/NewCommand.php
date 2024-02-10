@@ -183,14 +183,27 @@ class NewCommand extends Command
         /*  */
         $this->handleIfExsistingProject($input, $output);
         $this->installLaravel($input, $output);
+        $this->commitGitProject($input, $output, 'Initial commit', true);
+
         $this->installBreeze($input, $output, $this->projectDirectory);
+        $this->commitGitProject($input, $output, 'Install Breeze');
+
         $this->installLaradock($input, $output);
+        $this->commitGitProject($input, $output, 'Install Laradock');
+
         /*  */
 
         $this->installFeatures($input, $output);
+        $this->commitGitProject($input, $output, 'Install Features');
+
         $this->installNpmPackages($input, $output);
+        $this->commitGitProject($input, $output, 'Install Npm Packages');
+
         $this->installStubs($input, $output);
+        $this->commitGitProject($input, $output, 'Install Stubs');
+
         $this->installLayout($input, $output);
+        $this->commitGitProject($input, $output, 'Install Layout');
 
 
 
@@ -295,6 +308,7 @@ class NewCommand extends Command
 
         $laravelCommands = array_filter([
             "git clone https://github.com/Laradock/laradock.git laradock >/dev/null 2>&1",
+            "echo '/data/' >> .gitignore",
             // this will run form the root directory
             "sed -i '' 's/^DB_HOST=127.0.0.1/DB_HOST=mysql/g' .env",
             "sed -i '' 's/^DB_DATABASE=laravel/DB_DATABASE=default/g' .env",
@@ -321,8 +335,8 @@ class NewCommand extends Command
         $laradockCommands = array_filter([
             'cp .env.example .env',
             'sed -i "" "s+DATA_PATH_HOST=~/.laradock/data+DATA_PATH_HOST=../data+g" .env',
+            'rm -rf laradock/.git',
         ]);
-
 
         $process = $this->runCommands(
             $laradockCommands,
@@ -362,6 +376,31 @@ class NewCommand extends Command
             $this->timeLineOutput(true, $output, 'Installing Breeze...',  "✅ done") :
             $this->timeLineOutput(true, $output, 'Installing Breeze...',  "❌ failed");
     }
+
+    private function commitGitProject(InputInterface $input, OutputInterface $output, string $message = "", bool $init = false)
+    {
+        $this->timeLineOutput(false, $output, $init ? 'Initializing Git...' : 'Committing to Git...',);
+
+        // check if the project is already a git repository
+
+
+        $commands = [];
+
+        if ($init) {
+
+            $commands[] = "git init";
+            $message = $message ?: "Initial commit";
+        }
+
+        $commands[] = "git add .";
+        $commands[] = "git commit -m '$message'";
+
+        $this->runCommands($commands, $input, $output, workingPath: $this->projectDirectory);
+
+        $this->timeLineOutput(true, $output, 'Initializing Git...',  "✅ done");
+    }
+
+
 
     private function ShowHowProjectRuns(InputInterface $input, OutputInterface $output)
     {
