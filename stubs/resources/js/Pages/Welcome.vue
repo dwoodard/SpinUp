@@ -53,7 +53,7 @@
                                     ]">Your Profile</a>
                                     </MenuItem>
                                     <MenuItem v-slot="{ active }">
-                                    <a href="#" :class="[
+                                    <a :href="route('user-settings.index')" :class="[
                                         active ? 'bg-gray-100' : '',
                                         'block px-4 py-2 text-sm text-gray-700',
                                     ]">Settings</a>
@@ -94,7 +94,7 @@
                 </div>
             </DisclosurePanel>
         </Disclosure>
-        <div class="dashy"></div>
+
         <main>
             <!-- Hero section -->
             <div class="relative isolate overflow-hidden">
@@ -155,7 +155,6 @@
                             <a href="#" class="text-sm font-semibold leading-6 text-white">Live demo <span aria-hidden="true">→</span></a>
                         </div>
                     </div>
-
                 </div>
             </div>
         </main>
@@ -205,6 +204,7 @@ import {
     MenuButton,
     MenuItem,
     MenuItems,
+
 } from "@headlessui/vue";
 import { Bars3Icon, BellIcon, XMarkIcon } from "@heroicons/vue/24/outline";
 
@@ -231,101 +231,12 @@ defineProps({
 const navigation = [
     { name: "Welcome", href: "#", current: true },
     { name: "Dashboard", href: "/dashboard", current: false },
+    // FEATURE_TELESCOPE:START
     { name: "Telescope", href: "/telescope", target: "_blank", current: false },
+    // FEATURE_TELESCOPE:END
 ];
 
-const primaryFeatures = [
-    {
-        name: "Server monitoring",
-        description:
-            "Non quo aperiam repellendus quas est est. Eos aut dolore aut ut sit nesciunt. Ex tempora quia. Sit nobis consequatur dolores incidunt.",
-        href: "#",
-        icon: BoltIcon,
-    },
-    {
-        name: "Collaborate",
-        description:
-            "Vero eum voluptatem aliquid nostrum voluptatem. Vitae esse natus. Earum nihil deserunt eos quasi cupiditate. A inventore et molestiae natus.",
-        href: "#",
-        icon: UsersIcon,
-    },
-    {
-        name: "Task scheduling",
-        description:
-            "Et quod quaerat dolorem quaerat architecto aliquam accusantium. Ex adipisci et doloremque autem quia quam. Quis eos molestiae at iure impedit.",
-        href: "#",
-        icon: CalendarDaysIcon,
-    },
-];
-const secondaryFeatures = [
-    {
-        name: "Push to deploy.",
-        description:
-            "Lorem ipsum, dolor sit amet consectetur adipisicing elit aute id magna.",
-        icon: CloudArrowUpIcon,
-    },
-    {
-        name: "SSL certificates.",
-        description:
-            "Anim aute id magna aliqua ad ad non deserunt sunt. Qui irure qui lorem cupidatat commodo.",
-        icon: LockClosedIcon,
-    },
-    {
-        name: "Simple queues.",
-        description:
-            "Ac tincidunt sapien vehicula erat auctor pellentesque rhoncus.",
-        icon: ArrowPathIcon,
-    },
-    {
-        name: "Advanced security.",
-        description:
-            "Lorem ipsum, dolor sit amet consectetur adipisicing elit aute id magna.",
-        icon: FingerPrintIcon,
-    },
-    {
-        name: "Powerful API.",
-        description:
-            "Anim aute id magna aliqua ad ad non deserunt sunt. Qui irure qui lorem cupidatat commodo.",
-        icon: Cog6ToothIcon,
-    },
-    {
-        name: "Database backups.",
-        description:
-            "Ac tincidunt sapien vehicula erat auctor pellentesque rhoncus. ",
-        icon: ServerIcon,
-    },
-];
-const stats = [
-    { id: 1, name: "Developers on the platform", value: "8,000+" },
-    { id: 2, name: "Daily requests", value: "900m+" },
-    { id: 3, name: "Uptime guarantee", value: "99.9%" },
-    { id: 4, name: "Projects deployed", value: "12m" },
-];
 const footerNavigation = {
-    solutions: [
-        { name: "Hosting", href: "#" },
-        { name: "Data Services", href: "#" },
-        { name: "Uptime Monitoring", href: "#" },
-        { name: "Enterprise Services", href: "#" },
-    ],
-    support: [
-        { name: "Pricing", href: "#" },
-        { name: "Documentation", href: "#" },
-        { name: "Guides", href: "#" },
-        { name: "API Reference", href: "#" },
-    ],
-    company: [
-        { name: "About", href: "#" },
-        { name: "Blog", href: "#" },
-        { name: "Jobs", href: "#" },
-        { name: "Press", href: "#" },
-        { name: "Partners", href: "#" },
-    ],
-    legal: [
-        { name: "Claim", href: "#" },
-        { name: "Privacy", href: "#" },
-        { name: "Terms", href: "#" },
-    ],
     social: [
         {
             name: "Facebook",

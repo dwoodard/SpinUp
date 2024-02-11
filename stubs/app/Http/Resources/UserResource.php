@@ -27,9 +27,11 @@ class UserResource extends JsonResource
             'city' => $this->city,
             'state' => $this->state,
             'zip' => $this->zip,
-            'isAdmin'=> $this->isAdmin,
+            'isAdmin' => $this->isAdmin,
             'settings' => $this->settings,
+            // FEATURE_LARAVEL_PERMISSION:START
             'roles' => $this->getRoleNames()
+            // FEATURE_LARAVEL_PERMISSION:END
         ];
 
 

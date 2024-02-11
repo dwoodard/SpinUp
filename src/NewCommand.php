@@ -183,41 +183,25 @@ class NewCommand extends Command
         /*  */
         $this->handleIfExsistingProject($input, $output);
         $this->installLaravel($input, $output);
-        $this->commitGitProject($input, $output, 'Initial commit', true);
+
 
         $this->installBreeze($input, $output, $this->projectDirectory);
-        $this->commitGitProject($input, $output, 'Install Breeze');
 
         $this->installLaradock($input, $output);
-        $this->commitGitProject($input, $output, 'Install Laradock');
 
         $this->installFeatures($input, $output);
 
         $this->installNpmPackages($input, $output);
-        $this->commitGitProject($input, $output, 'Install Npm Packages');
 
         $this->installStubs($input, $output);
-        $this->commitGitProject($input, $output, 'Install Stubs');
 
         $this->installLayout($input, $output);
-        $this->commitGitProject($input, $output, 'Install Layout');
-
-
 
         $this->installSetup($input, $output);
 
-        /*
-        |--------------------------------------------------------------------------
-        | Seeders
-        |--------------------------------------------------------------------------
-        |
-        | Commonly used seeders for the project
-        */
-        // $this->copySeeders($input, $output);
-
         $this->ShowHowProjectRuns($input, $output);
 
-        return 0;
+        return 0; //return 0 if everything is successful
     }
 
     /*
@@ -271,6 +255,8 @@ class NewCommand extends Command
 
         // replace last output line with a green checkmark
         $this->timeLineOutput(true, $output, 'Installing Laravel...',  "✅ done");
+
+        $this->commitGitProject($input, $output, 'Initial commit', true);
     }
 
 
@@ -302,7 +288,7 @@ class NewCommand extends Command
 
 
         $this->timeLineOutput(false, $output, 'Installing Laradock...');
-
+        $titleCaseName = ucwords($this->name);
         $laravelCommands = array_filter([
             "git clone https://github.com/Laradock/laradock.git laradock >/dev/null 2>&1",
             "echo '/data/' >> .gitignore",
@@ -313,6 +299,8 @@ class NewCommand extends Command
             "sed -i '' 's/^DB_USERNAME=root/DB_USERNAME=root/g' .env",
             "sed -i '' 's/^DB_PASSWORD=/DB_PASSWORD=root/g' .env",
             "sed -i '' 's/^REDIS_HOST=.*/REDIS_HOST=redis/g' .env",
+
+            "sed -i '' 's/^APP_NAME=Laravel/APP_NAME=\"$titleCaseName\"/g' .env",
         ]);
 
         $process = $this->runCommands(
@@ -339,6 +327,8 @@ class NewCommand extends Command
             $output,
             workingPath: $this->projectDirectory . '/laradock',
         );
+
+        $this->commitGitProject($input, $output, 'Install Laradock');
     }
 
     /*
@@ -370,6 +360,8 @@ class NewCommand extends Command
         $process->isSuccessful() ?
             $this->timeLineOutput(true, $output, 'Installing Breeze...',  "✅ done") :
             $this->timeLineOutput(true, $output, 'Installing Breeze...',  "❌ failed");
+
+        $this->commitGitProject($input, $output, 'Install Breeze');
     }
 
     private function commitGitProject(InputInterface $input, OutputInterface $output, string $message = "", bool $init = false)
@@ -464,10 +456,14 @@ class NewCommand extends Command
         $this->timeLineOutput(false, $output, 'Installing Template...');
 
         /* stubs/resources/views/app.blade.php */
+
+        $this->commitGitProject($input, $output, 'Install Layout');
     }
 
     private function installNpmPackages(InputInterface $input, OutputInterface $output)
     {
+
+        
         $commands = [
             'npm install @headlessui/vue',
             'npm install @heroicons/vue',
@@ -480,6 +476,8 @@ class NewCommand extends Command
         ];
 
         $this->runCommands($commands, $input, $output, workingPath: $this->projectDirectory);
+
+        $this->commitGitProject($input, $output, 'Install Npm Packages');
     }
 
     /*
@@ -620,6 +618,8 @@ class NewCommand extends Command
 
             // $this->timeLineOutput(true, $output, 'Installing Stubs...',  "✅ done");
         }
+
+        $this->commitGitProject($input, $output, 'Install Stubs');
     }
 
     private function installSetup(InputInterface $input, OutputInterface $output)
@@ -627,9 +627,12 @@ class NewCommand extends Command
         $commands = [
             'npm install',
             'npm run build',
+            'php artisan ziggy:generate',
             './deploy.sh seed',
         ];
         $this->runCommands($commands, $input, $output, workingPath: $this->projectDirectory);
+
+        $this->commitGitProject($input, $output, 'Install Setup');
     }
 
 

@@ -31,9 +31,11 @@ const showingNavigationDropdown = ref(false);
                                     Dashboard
                                 </NavLink>
 
+                                <!-- FEATURE_LARAVEL_TELESCOPE:START -->
                                 <Link :href="route('telescope')" :active="route().current('telescope')" class="inline-flex items-center px-1 pt-1 border-b-2 border-indigo-400 dark:border-indigo-600 text-sm font-medium leading-5 text-gray-900 dark:text-gray-100 focus:outline-none focus:border-indigo-700 transition duration-150 ease-in-out">
                                 Telescope
                                 </Link>
+                                <!-- FEATURE_LARAVEL_TELESCOPE:END -->
                             </div>
                         </div>
 
@@ -92,9 +94,11 @@ const showingNavigationDropdown = ref(false);
                             Dashboard
                         </ResponsiveNavLink>
 
+                        <!-- FEATURE_LARAVEL_TELESCOPE:START -->
                         <ResponsiveNavLink :href="route('telescope')" :active="route().current('dashboard')">
                             Telescope
                         </ResponsiveNavLink>
+                        <!-- FEATURE_LARAVEL_TELESCOPE:END -->
                     </div>
 
                     <!-- Responsive Settings Options -->

@@ -7,7 +7,8 @@ use Inertia\Inertia;
 
 class UserSettingsController extends Controller
 {
-    public function __construct(){
+    public function __construct()
+    {
         $this->middleware('auth');
     }
 
@@ -23,7 +24,7 @@ class UserSettingsController extends Controller
         ];
 
 
-        return Inertia::render('UserSettings', $data);
+        return Inertia::render('UserSettings/index', $data);
     }
 
     /**
@@ -46,7 +47,7 @@ class UserSettingsController extends Controller
     {
         $user = $request->user();
 
-        foreach($request->all() as $key => $value){
+        foreach ($request->all() as $key => $value) {
             $user->settings->set($key, $value);
             $user->save();
         }
@@ -99,4 +100,3 @@ class UserSettingsController extends Controller
         //
     }
 }
-

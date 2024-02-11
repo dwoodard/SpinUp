@@ -9,7 +9,7 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
-class SiteSettingController extends Controller
+class SiteSettingsController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -105,7 +105,4 @@ class SiteSettingController extends Controller
         $setting->delete();
         return redirect()->back();
     }
-
 }
-
-

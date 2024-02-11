@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\UserSettingsController;
+use App\Models\User;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -15,7 +17,9 @@ use Inertia\Inertia;
 | contains the "web" middleware group. Now create something great!
 |
 */
-Route::prefix('/admin')->group(__DIR__.'/admin.php');
+
+Route::prefix('/admin')->group(__DIR__ . '/admin.php');
+
 Route::get('/', function () {
     return Inertia::render('Welcome', [
         'canLogin' => Route::has('login'),
@@ -36,7 +40,7 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
     //UserSettings
-    // Route::resource('/user-settings', 'UserSettingsController');
+    Route::resource('/user-settings', UserSettingsController::class);
 });
 
 require __DIR__ . '/auth.php';

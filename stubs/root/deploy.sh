@@ -70,7 +70,8 @@ if [ ${1:-1} == 'build' ]; then
       php-worker \
       laravel-horizon \
       mailhog \
-      phpmyadmin
+      phpmyadmin \
+      redis
   else
     cd laradock || exit
     docker-compose up -d \
@@ -79,15 +80,16 @@ if [ ${1:-1} == 'build' ]; then
       php-worker \
       laravel-horizon \
       mailhog \
-      phpmyadmin
+      phpmyadmin \
+      redis
     cd ..
 
-    echo '--------------------------------------------------------'
-    echo '|  Website:    http://localhost                        |'
-    echo '|  Phpmyadmin: http://localhost:8081 root:root         |'
-    echo '|  Redis:      http://localhost:9987 laradock:laradock |'
-    echo '|  Mailhog:    http://localhost:8025/                  |'
-    echo '--------------------------------------------------------'
+    echo '-----------------------------------------------------------'
+    echo '|  Website:    http://localhost                            |'
+    echo '|  Phpmyadmin: http://localhost:8081 root:root             |'
+    echo '|  Redis:      http://localhost:6379 laradock:secret_redis |'
+    echo '|  Mailhog:    http://localhost:8025/                      |'
+    echo '-----------------------------------------------------------'
   fi
 
 

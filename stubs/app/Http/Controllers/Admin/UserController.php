@@ -51,7 +51,9 @@ class UserController extends Controller
             'password' => Hash::make($request->password)
         ]);
 
+        // FEATURE_LARAVEL_PERMISSION:START
         $user->assignRole($request->role);
+        // FEATURE_LARAVEL_PERMISSION:END
 
         return Redirect::back();
     }
@@ -62,7 +64,9 @@ class UserController extends Controller
             'username' => ['required', 'min:3', Rule::unique('users')->ignore($user->id)],
             'email' => ['required', 'email', Rule::unique('users')->ignore($user->id)],
             'password' => 'nullable|min:8',
+            // FEATURE_LARAVEL_PERMISSION:START
             'roles' => 'required|exists:roles,name'
+            // FEATURE_LARAVEL_PERMISSION:END
         ]);
 
         $user->update($request->only(OnlyColumns($user)));
@@ -89,7 +93,6 @@ class UserController extends Controller
             return Role::all();
         }
         return Role::where('name', '!=', 'superadmin')->get();
-
     }
 
     /**
@@ -110,5 +113,4 @@ class UserController extends Controller
 
         return UserResource::collection($users);
     }
-
 }

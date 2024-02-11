@@ -13,9 +13,11 @@ class SeedRolesPermissions extends Migration
      */
     public function up()
     {
+        // FEATURE_LARAVEL_PERMISSION:START
         \Spatie\Permission\Models\Role::create(['name' => 'superadmin']);
         \Spatie\Permission\Models\Role::create(['name' => 'admin']);
         \Spatie\Permission\Models\Role::create(['name' => 'user']);
+        // FEATURE_LARAVEL_PERMISSION:END
     }
 
     /**
@@ -25,6 +27,8 @@ class SeedRolesPermissions extends Migration
      */
     public function down()
     {
+        // FEATURE_LARAVEL_PERMISSION:START
         \Illuminate\Support\Facades\DB::table('roles')->truncate();
+        // FEATURE_LARAVEL_PERMISSION:END
     }
 }

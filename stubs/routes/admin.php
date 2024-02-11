@@ -1,6 +1,7 @@
 <?php
 
-use App\Http\Controllers\AdminController;
+use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Admin\SitesettingsController;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Route;
 
@@ -8,13 +9,13 @@ Route::group(['as' => 'admin.', 'middleware' => ['web', 'role:admin|superadmin']
 
     //Default route for admin
     Route::get('/', function () {
-        return Redirect::route('admin.pages');
+        return "Admin Dashboard";
     })->name('index');
 
     //users
-    Route::resource('users', 'Admin\UserController');
+    Route::resource('users', UserController::class);
 
 
     //settings
-    Route::resource('site-settings', 'Admin\SiteSettingController');
+    Route::resource('site-settings', SiteSettingsController::class);
 });
