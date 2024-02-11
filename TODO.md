@@ -7,7 +7,7 @@
     - vue 3
     - vite
     - inertia
-  - we'll have 3 layouts
+  - we'll have 
     - admin
       - admin will have these features
         - users/roles/permissions
@@ -25,7 +25,6 @@
 - PHP Helpers File
   - create a file in app/Helpers.php
     - this file will contain all the helper functions like:
-      - 
 
 
 - DELETE `resources/views/layouts/welcome.blade.php`

@@ -13,34 +13,31 @@ class UserSeeder extends Seeder
      */
     public function run()
     {
-        //create super admin user
-        $user = new \App\Models\User();
-        $user->username = 'super';
-        $user->email = 'super@admin.com';
-        $user->password = bcrypt('asdfasdf');
-        // FEATURE_LARAVEL_PERMISSION:START
-        $user->assignRole('superadmin');
-        // FEATURE_LARAVEL_PERMISSION:END
 
-        // FEATURE_LARAVEL_SCHEMALESS_ATTRIBUTES:START
-        $user->settings = [];
-        // FEATURE_LARAVEL_SCHEMALESS_ATTRIBUTES:END
-        $user->save();
+        //create a user for each role
+        $roles = [
+            'superadmin',
+            'admin',
+            'user',
+        ];
 
-        //create admin user
-        $user = new \App\Models\User();
-        $user->username = 'admin';
-        $user->email = 'admin@admin.com';
-        $user->password = bcrypt('asdfasdf');
+        //for the $roles array, create a user for each role
+        foreach ($roles as $role) {
+            $user = new \App\Models\User();
+            $user->username = $role;
+            $user->email = $role . '@' . $role . '.com';
+            $user->password = bcrypt('asdfasdf');
+            // FEATURE_LARAVEL_PERMISSION:START
+            $user->assignRole($role);
+            // FEATURE_LARAVEL_PERMISSION:END
 
-        // FEATURE_LARAVEL_PERMISSION:START
-        $user->assignRole('admin');
-        // FEATURE_LARAVEL_PERMISSION:END
+            // FEATURE_LARAVEL_SCHEMALESS_ATTRIBUTES:START
+            $user->settings = [];
+            // FEATURE_LARAVEL_SCHEMALESS_ATTRIBUTES:END
+            $user->save();
+        }
 
-        // FEATURE_LARAVEL_SCHEMALESS_ATTRIBUTES:START
-        $user->settings = [];
-        // FEATURE_LARAVEL_SCHEMALESS_ATTRIBUTES:END
-
-        $user->save();
+        // now create 100 random users
+        \App\Models\User::factory(100)->create();
     }
 }
