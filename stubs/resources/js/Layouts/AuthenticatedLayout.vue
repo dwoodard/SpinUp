@@ -20,7 +20,7 @@ const showingNavigationDropdown = ref(false);
                             <!-- Logo -->
                             <div class="shrink-0 flex items-center">
                                 <Link :href="route('home')">
-                                <span>LOGO</span>
+                                <span class="text-white">LOGO</span>
                                 </Link>
                             </div>
 
@@ -121,9 +121,9 @@ const showingNavigationDropdown = ref(false);
 
             <!-- Page Heading -->
             <header class="bg-white dark:bg-gray-800 shadow" v-if="$slots.header">
-                <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-                    <slot name="header" />
-                </div>
+
+                <slot name="header" />
+
             </header>
 
             <!-- Page Content -->
