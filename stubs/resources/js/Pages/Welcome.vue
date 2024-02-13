@@ -23,8 +23,7 @@
                                         ? 'bg-gray-900 text-white'
                                         : 'text-gray-300 hover:bg-gray-700 hover:text-white',
                                     'rounded-md px-3 py-2 text-sm font-medium',
-                                ]" :aria-current="item.current ? 'page' : undefined
-    ">{{ item.name }}</a>
+                                ]" :aria-current="item.current ? 'page' : undefined">{{ item.name }}</a>
                             </div>
                         </div>
                     </div>
@@ -181,21 +180,9 @@
 
 <script setup>
 import { defineComponent, h } from "vue";
-import {
-    ArrowPathIcon,
-    ChevronRightIcon,
-    CloudArrowUpIcon,
-    Cog6ToothIcon,
-    FingerPrintIcon,
-    LockClosedIcon,
-    ServerIcon,
-} from "@heroicons/vue/20/solid";
-import {
-    BoltIcon,
-    CalendarDaysIcon,
-    UsersIcon,
-} from "@heroicons/vue/24/outline";
-import { Head, Link, usePage } from "@inertiajs/vue3";
+import { ChevronRightIcon } from "@heroicons/vue/20/solid";
+
+import { Link, usePage } from "@inertiajs/vue3";
 import {
     Disclosure,
     DisclosureButton,
@@ -203,7 +190,7 @@ import {
     Menu,
     MenuButton,
     MenuItem,
-    MenuItems,
+    MenuItems
 
 } from "@headlessui/vue";
 import { Bars3Icon, BellIcon, XMarkIcon } from "@heroicons/vue/24/outline";
@@ -212,6 +199,7 @@ const page = usePage();
 const user = page.props.auth.user;
 
 defineProps({
+
     canLogin: {
         type: Boolean,
     },

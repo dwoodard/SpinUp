@@ -2,7 +2,6 @@
 
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\SitesettingsController;
-use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Route;
 
 Route::group(['as' => 'admin.', 'middleware' => ['web', 'role:admin|superadmin']], function () {
