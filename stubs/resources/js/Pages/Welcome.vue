@@ -1,5 +1,5 @@
 <template>
-    <div class="bg-gray-900">
+    <div class="bg-gray-900 h-full">
         <Disclosure as="nav" class="bg-gray-800" v-slot="{ open }">
             <div class="mx-auto max-w-7xl px-2 sm:px-6 lg:px-8">
                 <div class="relative flex h-16 items-center justify-between">
@@ -218,9 +218,9 @@ defineProps({
 const navigation = [
     { name: "Welcome", href: "#", current: true },
     { name: "Dashboard", href: "/dashboard", current: false },
-    // FEATURE_TELESCOPE:START
+    // FEATURE_LARAVEL_TELESCOPE:START
     { name: "Telescope", href: "/telescope", target: "_blank", current: false },
-    // FEATURE_TELESCOPE:END
+    // FEATURE_LARAVEL_TELESCOPE:END
 ];
 
 const footerNavigation = {
