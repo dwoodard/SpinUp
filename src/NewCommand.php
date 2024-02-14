@@ -366,10 +366,6 @@ class NewCommand extends Command
 
     private function commitGitProject(InputInterface $input, OutputInterface $output, string $message = "", bool $init = false)
     {
-        // $this->timeLineOutput(false, $output, $init ? 'Initializing Git...' : 'Committing to Git...',);
-
-        // check if the project is already a git repository
-
 
         $commands = [];
 
