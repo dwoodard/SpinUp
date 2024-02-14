@@ -463,14 +463,16 @@ class NewCommand extends Command
     private function installNpmPackages(InputInterface $input, OutputInterface $output)
     {
 
-        
+
         $commands = [
             'npm install @headlessui/vue',
             'npm install @heroicons/vue',
             'npm install @vueuse/core @vueuse/components',
 
-            'npm i eslint-plugin-prettier-vue --save-dev',
+            'npm i eslint --save-dev',
             'npm i eslint-plugin-vue --save-dev',
+            'npm i @aszydelko/eslint-config-vue --save-dev',
+            'npm i eslint-plugin-prettier-vue --save-dev',
             'npm i eslint-config-prettier --save-dev',
             'npm install prettier --save-dev',
         ];

@@ -1,0 +1,22 @@
+{
+    "extends": "@aszydelko/eslint-config-vue",
+    "rules": {
+      "vue/max-attributes-per-line": "off",
+      "max-len": "off",
+      "import/prefer-default-export": "off",
+      "vue/require-prop-types": "off",
+      "prefer-destructuring": "off",
+      "no-debugger": 0,
+      "default-case": 0,
+      "promise/always-return": 0,
+      "quotes": [
+        "error",
+        "single",
+        {"avoidEscape": true, "allowTemplateLiterals": true}
+      ],
+      "quote-props": [
+        "error",
+        "as-needed"
+      ]
+    }
+  }

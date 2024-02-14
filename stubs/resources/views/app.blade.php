@@ -21,7 +21,7 @@ class="h-full bg-white"
         @vite(['resources/js/app.js', "resources/js/Pages/{$page['component']}.vue"])
         @inertiaHead
     </head>
-    <body class="font-sans antialiased h-full" >
+    <body class="font-sans antialiased h-full" color-scheme="dark">
         @inertia
     </body>
 </html>
