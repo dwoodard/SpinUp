@@ -18,6 +18,9 @@ use Inertia\Inertia;
 |
 */
 
+
+Route::prefix('/dev')->group(__DIR__ . '/dev.php');
+
 Route::prefix('/admin')->group(__DIR__ . '/admin.php');
 
 Route::get('/', function () {
