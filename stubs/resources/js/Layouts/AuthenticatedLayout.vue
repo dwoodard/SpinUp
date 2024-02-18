@@ -85,16 +85,15 @@ const showingNavigationDropdown = ref(false);
                 <!-- Responsive Navigation Menu -->
                 <div :class="{ block: showingNavigationDropdown, hidden: !showingNavigationDropdown }" class="sm:hidden">
                     <div class="pt-2 pb-3 space-y-1">
-                        <ResponsiveNavLink :href="route('home')" :active="route().current('dashboard')">
+                        <ResponsiveNavLink :href="route('home')" :active="route().current('admin.dashboard')">
                             Home
                         </ResponsiveNavLink>
 
-                        <ResponsiveNavLink :href="route('dashboard')" :active="route().current('dashboard')">
+                        <ResponsiveNavLink :href="route('admin.dashboard')" :active="route().current('admin.dashboard')">
                             Dashboard
                         </ResponsiveNavLink>
-
-                        <!-- FEATURE_LARAVEL_TELESCOPE:START -->
-                        <ResponsiveNavLink :href="route('telescope')" :active="route().current('dashboard')">
+			<!-- FEATURE_LARAVEL_TELESCOPE:START -->
+                        <ResponsiveNavLink :href="route('telescope')" :active="route().current('admin.dashboard')">
                             Telescope
                         </ResponsiveNavLink>
                         <!-- FEATURE_LARAVEL_TELESCOPE:END -->
