@@ -37,13 +37,13 @@ class NewCommand extends Command
 
     // Features must follow the naming convention of FEATURE_[NAME_OF_FEATURE]
     private $features = [
-        'FEATURE_LARAVEL_PWA',
-        'FEATURE_LARAVEL_PERMISSION',
-        'FEATURE_LARAVEL_SCHEMALESS_ATTRIBUTES',
-        'FEATURE_LARAVEL_TELESCOPE',
-        'FEATURE_VENTURECRAFT_REVISIONABLE'
-        // 'FEATURE_LARAVEL_CASHIER',
-        // 'FEATURE_HEADLESS_UI',
+      'FEATURE_LARAVEL_PWA',
+      'FEATURE_LARAVEL_PERMISSION',
+      'FEATURE_LARAVEL_SCHEMALESS_ATTRIBUTES',
+      'FEATURE_LARAVEL_TELESCOPE',
+      'FEATURE_VENTURECRAFT_REVISIONABLE'
+      // 'FEATURE_LARAVEL_CASHIER',
+      // 'FEATURE_HEADLESS_UI',
     ];
 
 
@@ -61,37 +61,37 @@ class NewCommand extends Command
     protected function configure()
     {
         $this
-            ->setName('new')
-            ->setDescription('Create a new Laravel application')
-            ->addArgument('name', InputArgument::REQUIRED)
+          ->setName('new')
+          ->setDescription('Create a new Laravel application')
+          ->addArgument('name', InputArgument::REQUIRED)
 
 
-            //add General
-            ->addOption('force', 'f', InputOption::VALUE_NONE, 'Forces install even if the directory already exists')
-            ->addOption('dev', null, InputOption::VALUE_NONE, 'Installs the latest "development" release')
-            ->addOption('laravel-quiet', null, InputOption::VALUE_OPTIONAL, 'Dont show any Laravel Install', true)
+          //add General
+          ->addOption('force', 'f', InputOption::VALUE_NONE, 'Forces install even if the directory already exists')
+          ->addOption('dev', null, InputOption::VALUE_NONE, 'Installs the latest "development" release')
+          ->addOption('laravel-quiet', null, InputOption::VALUE_OPTIONAL, 'Dont show any Laravel Install', true)
 
 
-            //debug
-            ->addOption('debug', null, InputOption::VALUE_NONE, 'Debug')
+          //debug
+          ->addOption('debug', null, InputOption::VALUE_NONE, 'Debug')
 
-            //add laradock
-            ->addOption('laradock', null, InputOption::VALUE_NONE, 'Installs the Laradock scaffolding (in project)')
+          //add laradock
+          ->addOption('laradock', null, InputOption::VALUE_NONE, 'Installs the Laradock scaffolding (in project)')
 
-            // Breeze
-            ->addOption('stack', null, InputOption::VALUE_OPTIONAL, 'The stack that should be installed', 'livewire')
-            ->addOption('dark', null, InputOption::VALUE_NONE, 'Installs the dark theme for Breeze')
-            ->addOption('ssr', null, InputOption::VALUE_NONE, 'Installs the SSR theme for Breeze')
+          // Breeze
+          ->addOption('stack', null, InputOption::VALUE_OPTIONAL, 'The stack that should be installed', 'livewire')
+          ->addOption('dark', null, InputOption::VALUE_NONE, 'Installs the dark theme for Breeze')
+          ->addOption('ssr', null, InputOption::VALUE_NONE, 'Installs the SSR theme for Breeze')
 
-            //composer packages to add
-            ->addOption('all', null, InputOption::VALUE_NONE, 'Installs all the Composer packages')
+          //composer packages to add
+          ->addOption('all', null, InputOption::VALUE_NONE, 'Installs all the Composer packages')
 
 
 
-            // componets
-            ->addOption('features', null, InputOption::VALUE_OPTIONAL | InputOption::VALUE_IS_ARRAY, 'Toggle features to install')
+          // componets
+          ->addOption('features', null, InputOption::VALUE_OPTIONAL | InputOption::VALUE_IS_ARRAY, 'Toggle features to install')
 
-            //;
+          //;
         ;
 
         // add features as options by looping through the features array
@@ -129,16 +129,16 @@ class NewCommand extends Command
     ┛      ┛
     </>
 '
-                // show name of the project if passed as an argument
-                . ($input->getArgument('name') ? ' - Name: <options=bold>' . $input->getArgument('name') . '</>' . PHP_EOL : '')
-                . ($input->getArgument('name') ? ' - Project directory: <options=bold>' . getcwd() . '/' . $input->getArgument('name') . '</>' . PHP_EOL : '')
-                . ($input->getOption('laradock') ? ' - Laradock: <options=bold>Yes</>' . PHP_EOL : '')
-                . ($input->getOption('force') ? ' - Force Delete Project: <options=bold>Yes</>' . PHP_EOL : '')
+              // show name of the project if passed as an argument
+              . ($input->getArgument('name') ? ' - Name: <options=bold>' . $input->getArgument('name') . '</>' . PHP_EOL : '')
+              . ($input->getArgument('name') ? ' - Project directory: <options=bold>' . getcwd() . '/' . $input->getArgument('name') . '</>' . PHP_EOL : '')
+              . ($input->getOption('laradock') ? ' - Laradock: <options=bold>Yes</>' . PHP_EOL : '')
+              . ($input->getOption('force') ? ' - Force Delete Project: <options=bold>Yes</>' . PHP_EOL : '')
 
 
 
-                . PHP_EOL
-                . PHP_EOL
+              . PHP_EOL
+              . PHP_EOL
         );
 
         // if not set, ask for the name of the project
@@ -148,8 +148,8 @@ class NewCommand extends Command
                 placeholder: 'E.g. example-app',
                 required: 'The project name is required.',
                 validate: fn ($value) => preg_match('/[^\pL\pN\-_.]/', $value) !== 0
-                    ? 'The name may only contain letters, numbers, dashes, underscores, and periods.'
-                    : null,
+                ? 'The name may only contain letters, numbers, dashes, underscores, and periods.'
+                : null,
             ));
         }
 
@@ -205,13 +205,13 @@ class NewCommand extends Command
     }
 
     /*
-    |--------------------------------------------------------------------------
-    | Handle If Exsisting Project
-    |--------------------------------------------------------------------------
-    |  Now that we have the name, we can check if the directory exists
-    |  and if it does, we can delete it if the -f flag is passed.
-    |  If not, we can ask if they want to delete it.
-    */
+      |--------------------------------------------------------------------------
+      | Handle If Exsisting Project
+      |--------------------------------------------------------------------------
+      |  Now that we have the name, we can check if the directory exists
+      |  and if it does, we can delete it if the -f flag is passed.
+      |  If not, we can ask if they want to delete it.
+      */
     protected function handleIfExsistingProject(InputInterface $input, OutputInterface $output)
     {
 
@@ -224,22 +224,22 @@ class NewCommand extends Command
         else {
             // -f is passed, delete the project if it exists
             $commands = [
-                'rm -rf ' . $this->projectDirectory,
+              'rm -rf ' . $this->projectDirectory,
             ];
             $this->runCommands($commands, $input, $output);
         }
     }
 
     /*
-    |--------------------------------------------------------------------------
-    | Install Laravel
-    |--------------------------------------------------------------------------
-    |
-    | This section installs Laravel, and sets up the project, including
-    | setting up the database, and installing the composer packages
-    | that were selected.
-    |
-    */
+      |--------------------------------------------------------------------------
+      | Install Laravel
+      |--------------------------------------------------------------------------
+      |
+      | This section installs Laravel, and sets up the project, including
+      | setting up the database, and installing the composer packages
+      | that were selected.
+      |
+      */
     protected function installLaravel(InputInterface $input, OutputInterface $output)
     {
 
@@ -248,13 +248,13 @@ class NewCommand extends Command
         $this->timeLineOutput(true, $output, 'Installing Laravel...');
 
         $commands = [
-            "composer create-project $quite laravel/laravel $this->projectDirectory  --remove-vcs --prefer-dist",
+          "composer create-project $quite laravel/laravel $this->projectDirectory  --remove-vcs --prefer-dist",
         ];
 
         $this->runCommands($commands, $input, $output);
 
         // replace last output line with a green checkmark
-        $this->timeLineOutput(true, $output, 'Installing Laravel...',  "✅ done");
+        $this->timeLineOutput(true, $output, 'Installing Laravel...', "✅ done");
 
         $this->commitGitProject($input, $output, 'Initial commit', true);
     }
@@ -262,18 +262,18 @@ class NewCommand extends Command
 
 
     /*
-    |--------------------------------------------------------------------------
-    | Install Laradock
-    |--------------------------------------------------------------------------
-    | [Optional] ask if they want to install Laradock, and if so, install it.
-    |
-    | This section installs Laradock, a collection of Docker images
-    | used to run Laravel projects. It also sets up the .envs for
-    | both Laravel and Laradock.
-    |
-    | [Docs]   https://laradock.io/
-    |
-    */
+      |--------------------------------------------------------------------------
+      | Install Laradock
+      |--------------------------------------------------------------------------
+      | [Optional] ask if they want to install Laradock, and if so, install it.
+      |
+      | This section installs Laradock, a collection of Docker images
+      | used to run Laravel projects. It also sets up the .envs for
+      | both Laravel and Laradock.
+      |
+      | [Docs]   https://laradock.io/
+      |
+      */
     protected function installLaradock(InputInterface $input, OutputInterface $output)
     {
         $input->setOption('laradock', $input->getOption('laradock') || confirm(
@@ -290,17 +290,17 @@ class NewCommand extends Command
         $this->timeLineOutput(false, $output, 'Installing Laradock...');
         $titleCaseName = ucwords($this->name);
         $laravelCommands = array_filter([
-            "git clone https://github.com/Laradock/laradock.git laradock >/dev/null 2>&1",
-            "echo '/data/' >> .gitignore",
-            'rm -rf laradock/.git',
-            // this will run form the root directory
-            "sed -i '' 's/^DB_HOST=127.0.0.1/DB_HOST=mysql/g' .env",
-            "sed -i '' 's/^DB_DATABASE=laravel/DB_DATABASE=default/g' .env",
-            "sed -i '' 's/^DB_USERNAME=root/DB_USERNAME=root/g' .env",
-            "sed -i '' 's/^DB_PASSWORD=/DB_PASSWORD=root/g' .env",
-            "sed -i '' 's/^REDIS_HOST=.*/REDIS_HOST=redis/g' .env",
+          "git clone https://github.com/Laradock/laradock.git laradock >/dev/null 2>&1",
+          "echo '/data/' >> .gitignore",
+          'rm -rf laradock/.git',
+          // this will run form the root directory
+          "sed -i '' 's/^DB_HOST=127.0.0.1/DB_HOST=mysql/g' .env",
+          "sed -i '' 's/^DB_DATABASE=laravel/DB_DATABASE=default/g' .env",
+          "sed -i '' 's/^DB_USERNAME=root/DB_USERNAME=root/g' .env",
+          "sed -i '' 's/^DB_PASSWORD=/DB_PASSWORD=root/g' .env",
+          "sed -i '' 's/^REDIS_HOST=.*/REDIS_HOST=redis/g' .env",
 
-            "sed -i '' 's/^APP_NAME=Laravel/APP_NAME=\"$titleCaseName\"/g' .env",
+          "sed -i '' 's/^APP_NAME=Laravel/APP_NAME=\"$titleCaseName\"/g' .env",
         ]);
 
         $process = $this->runCommands(
@@ -311,14 +311,14 @@ class NewCommand extends Command
         );
 
         $process->isSuccessful() ?
-            $this->timeLineOutput(true, $output, 'Installing Laradock...',  "✅ done") :
-            $this->timeLineOutput(true, $output, 'Installing Laradock...',  "❌ failed");
+          $this->timeLineOutput(true, $output, 'Installing Laradock...', "✅ done") :
+          $this->timeLineOutput(true, $output, 'Installing Laradock...', "❌ failed");
 
         // now that it is cloned, we can run command in the directory
 
         $laradockCommands = array_filter([
-            'cp .env.example .env',
-            'sed -i "" "s+DATA_PATH_HOST=~/.laradock/data+DATA_PATH_HOST=../data+g" .env',
+          'cp .env.example .env',
+          'sed -i "" "s+DATA_PATH_HOST=~/.laradock/data+DATA_PATH_HOST=../data+g" .env',
         ]);
 
         $process = $this->runCommands(
@@ -332,34 +332,34 @@ class NewCommand extends Command
     }
 
     /*
-    |--------------------------------------------------------------------------
-    | Install Breeze
-    |--------------------------------------------------------------------------
-    | Laravel Breeze is a minimal, simple implementation of all of
-    | Laravel's authentication features, including login,
-    | registration, password reset, email verification, and
-    | password confirmation.
-    |
-    | [Docs]   https://laravel.com/docs/starter-kits#laravel-breeze
-    */
+      |--------------------------------------------------------------------------
+      | Install Breeze
+      |--------------------------------------------------------------------------
+      | Laravel Breeze is a minimal, simple implementation of all of
+      | Laravel's authentication features, including login,
+      | registration, password reset, email verification, and
+      | password confirmation.
+      |
+      | [Docs]   https://laravel.com/docs/starter-kits#laravel-breeze
+      */
     protected function installBreeze(InputInterface $input, OutputInterface $output, string $directory)
     {
 
         $this->timeLineOutput(false, $output, 'Installing Breeze...');
 
         $commands = array_filter([
-            "composer require laravel/breeze --dev  >/dev/null 2>&1",
-            trim(sprintf(
-                $this->phpBinary() . ' artisan breeze:install vue --dark %s >/dev/null 2>&1',
-                $input->getOption('ssr') ? '--ssr' : '',
-            ))
+          "composer require laravel/breeze --dev  >/dev/null 2>&1",
+          trim(sprintf(
+              $this->phpBinary() . ' artisan breeze:install vue --dark %s >/dev/null 2>&1',
+              $input->getOption('ssr') ? '--ssr' : '',
+          ))
         ]);
 
         $process = $this->runCommands($commands, $input, $output, workingPath: $directory);
 
         $process->isSuccessful() ?
-            $this->timeLineOutput(true, $output, 'Installing Breeze...',  "✅ done") :
-            $this->timeLineOutput(true, $output, 'Installing Breeze...',  "❌ failed");
+          $this->timeLineOutput(true, $output, 'Installing Breeze...', "✅ done") :
+          $this->timeLineOutput(true, $output, 'Installing Breeze...', "❌ failed");
 
         $this->commitGitProject($input, $output, 'Install Breeze');
     }
@@ -392,8 +392,8 @@ class NewCommand extends Command
 
         $output->writeln(
             PHP_EOL .
-                "cd $this->projectDirectory && ./deploy.sh seed"
-                . PHP_EOL
+            "cd $this->projectDirectory && ./deploy.sh seed"
+            . PHP_EOL
         );
     }
 
@@ -402,50 +402,49 @@ class NewCommand extends Command
 
 
     /*
-    |--------------------------------------------------------------------------
-    | INSTALL FEATURES
-    |--------------------------------------------------------------------------
-    | Show a list of features that can be installed, and
-    | allow the user to select which ones they want to install, via multi-select.
-    | We can then install the selected features.
-    | this function will be responsible for installing the features with a toggled on
-    | in the multi-select. we are going to assume all features are to be installed, unless
-    | a flag of --features is passed, then we will only install
-    | the components that are toggled on.
-    |
-    */
+      |--------------------------------------------------------------------------
+      | INSTALL FEATURES
+      |--------------------------------------------------------------------------
+      | Show a list of features that can be installed, and
+      | allow the user to select which ones they want to install, via multi-select.
+      | We can then install the selected features.
+      | this function will be responsible for installing the features with a toggled on
+      | in the multi-select. we are going to assume all features are to be installed, unless
+      | a flag of --features is passed, then we will only install
+      | the components that are toggled on.
+      |
+      */
 
     /*
-    |--------------------------------------------------------------------------
-    | INSTALL TEMPLATE
-    |--------------------------------------------------------------------------
+      |--------------------------------------------------------------------------
+      | INSTALL TEMPLATE
+      |--------------------------------------------------------------------------
 
-    */
+      */
 
 
     /*
-    |--------------------------------------------------------------------------
-    | Install Layout Templates
-    |--------------------------------------------------------------------------
-        Using Breeze as a base, we can install other packages that
-        are commonly used in Laravel projects. These include
-        Laravel PWA, Laravel Schemaless Attributes,
+      |--------------------------------------------------------------------------
+      | Install Layout Templates
+      |--------------------------------------------------------------------------
+          Using Breeze as a base, we can install other packages that
+          are commonly used in Laravel projects. These include
+          Laravel PWA, Laravel Schemaless Attributes,
 
-        Tailwind CSS, Vue Components, Headless UI, Etc.
+          Tailwind CSS, Vue Components, Headless UI, Etc.
 
-        we'll move dashboard to a set of admin routes, and then we'll have a set of
-        - remove from routes/web.php
-        - copy stubs/routes/admin.php to routes/admin.php
-        - copy stubs/resources/views/admin to resources/views/admin
-    */
+          we'll move dashboard to a set of admin routes, and then we'll have a set of
+          - remove from routes/web.php
+          - copy stubs/routes/admin.php to routes/admin.php
+          - copy stubs/resources/views/admin to resources/views/admin
+      */
     private function installLayout(InputInterface $input, OutputInterface $output)
     {
 
         // remove the welcome.blade.php file
         $commands = [
-            //remove the resources/views/welcome.blade.php file
-            "rm -rf $this->projectDirectory/resources/views/welcome.blade.php",
-
+          //remove the resources/views/welcome.blade.php file
+          "rm -rf $this->projectDirectory/resources/views/welcome.blade.php",
         ];
         $this->runCommands($commands, $input, $output);
 
@@ -461,16 +460,25 @@ class NewCommand extends Command
 
 
         $commands = [
-            'npm install @headlessui/vue',
-            'npm install @heroicons/vue',
-            'npm install @vueuse/core @vueuse/components',
+          'npm i @headlessui/vue',
+          'npm i @heroicons/vue',
 
-            'npm i eslint --save-dev',
-            'npm i eslint-plugin-vue --save-dev',
-            'npm i @aszydelko/eslint-config-vue --save-dev',
-            'npm i eslint-plugin-prettier-vue --save-dev',
-            'npm i eslint-config-prettier --save-dev',
-            'npm install prettier --save-dev',
+          'npm i @vueuse/core',
+          'npm i @vueuse/components',
+          'npm i @vueuse/motion',
+
+          'npm i radix-vue',
+          'npm i @radix-icons/vue',
+
+          'npm i prettier --save-dev',
+
+          'npm i eslint --save-dev',
+          'npm i eslint-plugin-vue --save-dev',
+          'npm i eslint-config-prettier --save-dev',
+          'npm i eslint-plugin-prettier-vue --save-dev',
+
+          'npm i @iconify/vue --save-dev',
+          'npm i @aszydelko/eslint-config-vue --save-dev',
         ];
 
         $this->runCommands($commands, $input, $output, workingPath: $this->projectDirectory);
@@ -479,11 +487,11 @@ class NewCommand extends Command
     }
 
     /*
-    |--------------------------------------------------------------------------
-    | Stubs
-    |--------------------------------------------------------------------------
-    | Copy stub files from the stubs directory to the project directory.
-    */
+      |--------------------------------------------------------------------------
+      | Stubs
+      |--------------------------------------------------------------------------
+      | Copy stub files from the stubs directory to the project directory.
+      */
     private function installStubs(InputInterface $input, OutputInterface $output)
     {
         $this->timeLineOutput(false, $output, 'Installing Stubs...');
@@ -496,7 +504,7 @@ class NewCommand extends Command
         // echo $features->join(PHP_EOL) . PHP_EOL;
 
         // get all the files in the stubs directory
-        $filePaths = collect($filesystem->allFiles(dirname(__DIR__) . '/stubs'))->map(
+        $filePaths = collect($filesystem->allFiles(dirname(__DIR__) . '/stubs', true))->map(
             fn ($file) => ($file->getPathname())
         );
         // echo $filePaths->join(PHP_EOL) . PHP_EOL;
@@ -516,14 +524,14 @@ class NewCommand extends Command
                 // we'll use a negative approach to skip line or add it to the result
 
                 /*
-                    this could happen where the feature is set but not in the array
-                    # FEATURE_WHERE_TAG_DOES_NOT_EXIST:START
-                    # My flags should be deleted regardless of the tag because they are not in the array
-                    # FEATURE_WHERE_TAG_DOES_NOT_EXIST:END
+                            this could happen where the feature is set but not in the array
+                            # FEATURE_WHERE_TAG_DOES_NOT_EXIST:START
+                            # My flags should be deleted regardless of the tag because they are not in the array
+                            # FEATURE_WHERE_TAG_DOES_NOT_EXIST:END
 
-                    when this is the case, we should delete the lines until the end of the block
-                    call this: deleteBlock
-                */
+                            when this is the case, we should delete the lines until the end of the block
+                            call this: deleteBlock
+                        */
 
                 // is the line a feature or in the block of a feature
                 if (preg_match('/(FEATURE_.*):START.*/', $line, $matches)) {
@@ -559,8 +567,8 @@ class NewCommand extends Command
 
                 // is this the last line, if so, don't add a new line
                 $result .= $key === count($lines) - 1 ?
-                    $line :
-                    $line . PHP_EOL;
+                  $line :
+                  $line . PHP_EOL;
             }
             return $result;
         }
@@ -603,8 +611,8 @@ class NewCommand extends Command
             $contents = removeMarkersFromStub($contents, $features);
 
             $destinationPath = str_contains($stubFilePath, '/stubs/root/') ?
-                $this->projectDirectory . '/' . str_replace('/stubs/root/', '', str_replace(dirname(__DIR__), '', $stubFilePath)) :
-                $this->projectDirectory . str_replace('/stubs', '', str_replace(dirname(__DIR__), '', $stubFilePath));
+              $this->projectDirectory . '/' . str_replace('/stubs/root/', '', str_replace(dirname(__DIR__), '', $stubFilePath)) :
+              $this->projectDirectory . str_replace('/stubs', '', str_replace(dirname(__DIR__), '', $stubFilePath));
 
             $copied = saveContentToNewDestination($stubFilePath, $contents, $destinationPath);
 
@@ -623,10 +631,10 @@ class NewCommand extends Command
     private function installSetup(InputInterface $input, OutputInterface $output)
     {
         $commands = [
-            'npm install',
-            'npm run build',
-            'php artisan ziggy:generate',
-            './deploy.sh seed',
+          'npm install',
+          'npm run build',
+          'php artisan ziggy:generate',
+          './deploy.sh seed',
         ];
         $this->runCommands($commands, $input, $output, workingPath: $this->projectDirectory);
 
@@ -637,14 +645,14 @@ class NewCommand extends Command
 
 
     /*
-    |--------------------------------------------------------------------------
-    | Setup Functions
-    |--------------------------------------------------------------------------
-    | Below are functions that are used to setup the project. They are
-    | called from the main execute function, these should be modular
-    | to allow for easy editing and adding of new features.
-    |
-    */
+      |--------------------------------------------------------------------------
+      | Setup Functions
+      |--------------------------------------------------------------------------
+      | Below are functions that are used to setup the project. They are
+      | called from the main execute function, these should be modular
+      | to allow for easy editing and adding of new features.
+      |
+      */
     protected function installFeatures(InputInterface $input, OutputInterface $output)
     {
 
@@ -661,46 +669,46 @@ class NewCommand extends Command
     {
 
         $installs = [
-            "FEATURE_LARAVEL_PWA" => function () use ($input, $output) {
-                $this->runCommands([
-                    'composer require silviolleite/laravelpwa --prefer-dist',
-                    'php artisan vendor:publish --provider="LaravelPWA\Providers\LaravelPWAServiceProvider"',
-                ], $input, $output, workingPath: $this->projectDirectory);
-            },
+          "FEATURE_LARAVEL_PWA" => function () use ($input, $output) {
+              $this->runCommands([
+                'composer require silviolleite/laravelpwa --prefer-dist',
+                'php artisan vendor:publish --provider="LaravelPWA\Providers\LaravelPWAServiceProvider"',
+              ], $input, $output, workingPath: $this->projectDirectory);
+          },
 
-            "FEATURE_LARAVEL_PERMISSION" => function () use ($input, $output) {
-                $this->runCommands([
-                    "composer require spatie/laravel-permission",
-                    // 'php artisan vendor:publish --provider="Spatie\Permission\PermissionServiceProvider"',
-                ], $input, $output, workingPath: $this->projectDirectory);
-            },
+          "FEATURE_LARAVEL_PERMISSION" => function () use ($input, $output) {
+              $this->runCommands([
+                "composer require spatie/laravel-permission",
+                // 'php artisan vendor:publish --provider="Spatie\Permission\PermissionServiceProvider"',
+              ], $input, $output, workingPath: $this->projectDirectory);
+          },
 
-            "FEATURE_LARAVEL_SCHEMALESS_ATTRIBUTES" => function () use ($input, $output) {
-                $this->runCommands([
-                    "composer require spatie/laravel-schemaless-attributes",
-                ], $input, $output, workingPath: $this->projectDirectory);
-            },
+          "FEATURE_LARAVEL_SCHEMALESS_ATTRIBUTES" => function () use ($input, $output) {
+              $this->runCommands([
+                "composer require spatie/laravel-schemaless-attributes",
+              ], $input, $output, workingPath: $this->projectDirectory);
+          },
 
-            "FEATURE_LARAVEL_CASHIER" => function () use ($input, $output) {
-                $this->runCommands([
-                    "composer require laravel/cashier",
-                ], $input, $output, workingPath: $this->projectDirectory);
-            },
-            "FEATURE_LARAVEL_TELESCOPE" => function () use ($input, $output) {
-                $this->runCommands([
-                    "composer require laravel/telescope ",
-                    //wait for the composer require to finish before running the next command
-                    'while [ ! -d "vendor/laravel/telescope" ]; do sleep 1; done',
-                    'php artisan telescope:install',
-                ], $input, $output, workingPath: $this->projectDirectory);
-            },
-            "FEATURE_VENTURECRAFT_REVISIONABLE" => function () use ($input, $output) {
-                $this->runCommands([
-                    "composer require venturecraft/revisionable",
-                    'php artisan package:discover',
-                    "php artisan vendor:publish --provider='Venturecraft\Revisionable\RevisionableServiceProvider'",
-                ], $input, $output, workingPath: $this->projectDirectory);
-            },
+          "FEATURE_LARAVEL_CASHIER" => function () use ($input, $output) {
+              $this->runCommands([
+                "composer require laravel/cashier",
+              ], $input, $output, workingPath: $this->projectDirectory);
+          },
+          "FEATURE_LARAVEL_TELESCOPE" => function () use ($input, $output) {
+              $this->runCommands([
+                "composer require laravel/telescope ",
+                //wait for the composer require to finish before running the next command
+                'while [ ! -d "vendor/laravel/telescope" ]; do sleep 1; done',
+                'php artisan telescope:install',
+              ], $input, $output, workingPath: $this->projectDirectory);
+          },
+          "FEATURE_VENTURECRAFT_REVISIONABLE" => function () use ($input, $output) {
+              $this->runCommands([
+                "composer require venturecraft/revisionable",
+                'php artisan package:discover',
+                "php artisan vendor:publish --provider='Venturecraft\Revisionable\RevisionableServiceProvider'",
+              ], $input, $output, workingPath: $this->projectDirectory);
+          },
 
         ];
 
@@ -710,21 +718,21 @@ class NewCommand extends Command
 
 
     /*
-    |--------------------------------------------------------------------------
-    | Helper Functions
-    |--------------------------------------------------------------------------
-    | These functions are used to help with the setup functions above.
-    */
+      |--------------------------------------------------------------------------
+      | Helper Functions
+      |--------------------------------------------------------------------------
+      | These functions are used to help with the setup functions above.
+      */
 
     /*
-    |--------------------------------------------------------------------------
-    | TimeLine Output
-    |--------------------------------------------------------------------------
-    | While running through the setup, we want show the user what is happening
-    | and if it was successful or not. This function is used to output
-    | the status of the setup, while also removing the previous
-    |
-    */
+      |--------------------------------------------------------------------------
+      | TimeLine Output
+      |--------------------------------------------------------------------------
+      | While running through the setup, we want show the user what is happening
+      | and if it was successful or not. This function is used to output
+      | the status of the setup, while also removing the previous
+      |
+      */
     private function timeLineOutput($eraseLastLine, $output, $message = "Installing...", $status = 'in progress')
     {
 
@@ -751,11 +759,11 @@ class NewCommand extends Command
 
     protected function phpBinary()
     {
-        $phpBinary = (new PhpExecutableFinder)->find(false);
+        $phpBinary = (new PhpExecutableFinder())->find(false);
 
         return $phpBinary !== false
-            ? ProcessUtils::escapeArgument($phpBinary)
-            : 'php';
+          ? ProcessUtils::escapeArgument($phpBinary)
+          : 'php';
     }
 
     protected function runCommands($commands, InputInterface $input, OutputInterface $output, string $workingPath = null, array $env = [])
