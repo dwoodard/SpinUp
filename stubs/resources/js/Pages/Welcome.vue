@@ -18,12 +18,12 @@
                         </div>
                         <div class="hidden sm:ml-6 sm:block">
                             <div class="flex space-x-4">
-                                <a v-for="item in navigation" :key="item.name" :href="item.href" :target="item.target" :class="[
+                                <Link v-for="item in navigation" :key="item.name" :href="item.href" :target="item.target" :class="[
                                     item.current
                                         ? 'bg-gray-900 text-white'
                                         : 'text-gray-300 hover:bg-gray-700 hover:text-white',
                                     'rounded-md px-3 py-2 text-sm font-medium',
-                                ]" :aria-current="item.current ? 'page' : undefined">{{ item.name }}</a>
+                                ]" :aria-current="item.current ? 'page' : undefined">{{ item.name }}</Link>
                             </div>
                         </div>
                     </div>
@@ -45,16 +45,20 @@
                             <transition enter-active-class="transition ease-out duration-100" enter-from-class="transform opacity-0 scale-95" enter-to-class="transform opacity-100 scale-100" leave-active-class="transition ease-in duration-100" leave-from-class="transform opacity-100 scale-100" leave-to-class="transform opacity-0 scale-95">
                                 <MenuItems class="absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
                                     <MenuItem v-slot="{ active }">
-                                    <a :href="route('profile.edit')" :class="[
+                                    <Link
+                                    :href="route('profile.edit')"
+                                    :class="[
                                         active ? 'bg-gray-100' : '',
                                         'block px-4 py-2 text-sm text-gray-700',
-                                    ]">Your Profile</a>
+                                    ]">Your Profile</Link>
                                     </MenuItem>
                                     <MenuItem v-slot="{ active }">
-                                    <a :href="route('user-settings.index')" :class="[
+                                    <Link
+                                    :href="route('user-settings.index')"
+                                    :class="[
                                         active ? 'bg-gray-100' : '',
                                         'block px-4 py-2 text-sm text-gray-700',
-                                    ]">Settings</a>
+                                    ]">Settings</Link>
                                     </MenuItem>
 
                                     <MenuItem v-if="user" v-slot="{ active }">
@@ -139,7 +143,6 @@
                                 <span class="rounded-full bg-indigo-500/10 px-3 py-1 text-sm font-semibold leading-6 text-indigo-400 ring-1 ring-inset ring-indigo-500/20">Latest updates</span>
                                 <span class="inline-flex items-center space-x-2 text-sm font-medium leading-6 text-gray-300">
                                     <span>Just shipped v1.0</span>
-                                    <ChevronRightIcon class="h-5 w-5 text-gray-500" aria-hidden="true" />
                                 </span>
                             </a>
                         </div>
@@ -170,10 +173,6 @@
 
 <script setup>
 import Example from '@/Components/Example.vue';
-
-
-import { ChevronRightIcon } from '@heroicons/vue/20/solid';
-
 import { Link, usePage } from '@inertiajs/vue3';
 import {
     Disclosure,

@@ -38,6 +38,6 @@ class UserSeeder extends Seeder
         }
 
         // now create 100 random users
-        \App\Models\User::factory(100)->create();
+        \App\Models\User::factory(20)->create();
     }
 }

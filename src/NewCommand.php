@@ -633,6 +633,7 @@ class NewCommand extends Command
         $commands = [
           'npm install',
           'npm run build',
+          'php artisan key:generate',
           'php artisan ziggy:generate',
           './deploy.sh seed',
         ];
