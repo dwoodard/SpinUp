@@ -37,13 +37,13 @@ class NewCommand extends Command
 
     // Features must follow the naming convention of FEATURE_[NAME_OF_FEATURE]
     private $features = [
-      'FEATURE_LARAVEL_PWA',
-      'FEATURE_LARAVEL_PERMISSION',
-      'FEATURE_LARAVEL_SCHEMALESS_ATTRIBUTES',
-      'FEATURE_LARAVEL_TELESCOPE',
-      'FEATURE_VENTURECRAFT_REVISIONABLE'
-      // 'FEATURE_LARAVEL_CASHIER',
-      // 'FEATURE_HEADLESS_UI',
+        'FEATURE_LARAVEL_PWA',
+        'FEATURE_LARAVEL_PERMISSION',
+        'FEATURE_LARAVEL_SCHEMALESS_ATTRIBUTES',
+        'FEATURE_LARAVEL_TELESCOPE',
+        'FEATURE_VENTURECRAFT_REVISIONABLE'
+        // 'FEATURE_LARAVEL_CASHIER',
+        // 'FEATURE_HEADLESS_UI',
     ];
 
 
@@ -61,37 +61,37 @@ class NewCommand extends Command
     protected function configure()
     {
         $this
-          ->setName('new')
-          ->setDescription('Create a new Laravel application')
-          ->addArgument('name', InputArgument::REQUIRED)
+            ->setName('new')
+            ->setDescription('Create a new Laravel application')
+            ->addArgument('name', InputArgument::REQUIRED)
 
 
-          //add General
-          ->addOption('force', 'f', InputOption::VALUE_NONE, 'Forces install even if the directory already exists')
-          ->addOption('dev', null, InputOption::VALUE_NONE, 'Installs the latest "development" release')
-          ->addOption('laravel-quiet', null, InputOption::VALUE_OPTIONAL, 'Dont show any Laravel Install', true)
+            //add General
+            ->addOption('force', 'f', InputOption::VALUE_NONE, 'Forces install even if the directory already exists')
+            ->addOption('dev', null, InputOption::VALUE_NONE, 'Installs the latest "development" release')
+            ->addOption('laravel-quiet', null, InputOption::VALUE_OPTIONAL, 'Dont show any Laravel Install', true)
 
 
-          //debug
-          ->addOption('debug', null, InputOption::VALUE_NONE, 'Debug')
+            //debug
+            ->addOption('debug', null, InputOption::VALUE_NONE, 'Debug')
 
-          //add laradock
-          ->addOption('laradock', null, InputOption::VALUE_NONE, 'Installs the Laradock scaffolding (in project)')
+            //add laradock
+            ->addOption('laradock', null, InputOption::VALUE_NONE, 'Installs the Laradock scaffolding (in project)')
 
-          // Breeze
-          ->addOption('stack', null, InputOption::VALUE_OPTIONAL, 'The stack that should be installed', 'livewire')
-          ->addOption('dark', null, InputOption::VALUE_NONE, 'Installs the dark theme for Breeze')
-          ->addOption('ssr', null, InputOption::VALUE_NONE, 'Installs the SSR theme for Breeze')
+            // Breeze
+            ->addOption('stack', null, InputOption::VALUE_OPTIONAL, 'The stack that should be installed', 'livewire')
+            ->addOption('dark', null, InputOption::VALUE_NONE, 'Installs the dark theme for Breeze')
+            ->addOption('ssr', null, InputOption::VALUE_NONE, 'Installs the SSR theme for Breeze')
 
-          //composer packages to add
-          ->addOption('all', null, InputOption::VALUE_NONE, 'Installs all the Composer packages')
+            //composer packages to add
+            ->addOption('all', null, InputOption::VALUE_NONE, 'Installs all the Composer packages')
 
 
 
-          // componets
-          ->addOption('features', null, InputOption::VALUE_OPTIONAL | InputOption::VALUE_IS_ARRAY, 'Toggle features to install')
+            // componets
+            ->addOption('features', null, InputOption::VALUE_OPTIONAL | InputOption::VALUE_IS_ARRAY, 'Toggle features to install')
 
-          //;
+            //;
         ;
 
         // add features as options by looping through the features array
@@ -129,16 +129,16 @@ class NewCommand extends Command
     ┛      ┛
     </>
 '
-              // show name of the project if passed as an argument
-              . ($input->getArgument('name') ? ' - Name: <options=bold>' . $input->getArgument('name') . '</>' . PHP_EOL : '')
-              . ($input->getArgument('name') ? ' - Project directory: <options=bold>' . getcwd() . '/' . $input->getArgument('name') . '</>' . PHP_EOL : '')
-              . ($input->getOption('laradock') ? ' - Laradock: <options=bold>Yes</>' . PHP_EOL : '')
-              . ($input->getOption('force') ? ' - Force Delete Project: <options=bold>Yes</>' . PHP_EOL : '')
+                // show name of the project if passed as an argument
+                . ($input->getArgument('name') ? ' - Name: <options=bold>' . $input->getArgument('name') . '</>' . PHP_EOL : '')
+                . ($input->getArgument('name') ? ' - Project directory: <options=bold>' . getcwd() . '/' . $input->getArgument('name') . '</>' . PHP_EOL : '')
+                . ($input->getOption('laradock') ? ' - Laradock: <options=bold>Yes</>' . PHP_EOL : '')
+                . ($input->getOption('force') ? ' - Force Delete Project: <options=bold>Yes</>' . PHP_EOL : '')
 
 
 
-              . PHP_EOL
-              . PHP_EOL
+                . PHP_EOL
+                . PHP_EOL
         );
 
         // if not set, ask for the name of the project
@@ -148,8 +148,8 @@ class NewCommand extends Command
                 placeholder: 'E.g. example-app',
                 required: 'The project name is required.',
                 validate: fn ($value) => preg_match('/[^\pL\pN\-_.]/', $value) !== 0
-                ? 'The name may only contain letters, numbers, dashes, underscores, and periods.'
-                : null,
+                    ? 'The name may only contain letters, numbers, dashes, underscores, and periods.'
+                    : null,
             ));
         }
 
@@ -224,7 +224,7 @@ class NewCommand extends Command
         else {
             // -f is passed, delete the project if it exists
             $commands = [
-              'rm -rf ' . $this->projectDirectory,
+                'rm -rf ' . $this->projectDirectory,
             ];
             $this->runCommands($commands, $input, $output);
         }
@@ -248,7 +248,7 @@ class NewCommand extends Command
         $this->timeLineOutput(true, $output, 'Installing Laravel...');
 
         $commands = [
-          "composer create-project $quite laravel/laravel $this->projectDirectory  --remove-vcs --prefer-dist",
+            "composer create-project $quite laravel/laravel $this->projectDirectory  --remove-vcs --prefer-dist",
         ];
 
         $this->runCommands($commands, $input, $output);
@@ -290,17 +290,17 @@ class NewCommand extends Command
         $this->timeLineOutput(false, $output, 'Installing Laradock...');
         $titleCaseName = ucwords($this->name);
         $laravelCommands = array_filter([
-          "git clone https://github.com/Laradock/laradock.git laradock >/dev/null 2>&1",
-          "echo '/data/' >> .gitignore",
-          'rm -rf laradock/.git',
-          // this will run form the root directory
-          "sed -i '' 's/^DB_HOST=127.0.0.1/DB_HOST=mysql/g' .env",
-          "sed -i '' 's/^DB_DATABASE=laravel/DB_DATABASE=default/g' .env",
-          "sed -i '' 's/^DB_USERNAME=root/DB_USERNAME=root/g' .env",
-          "sed -i '' 's/^DB_PASSWORD=/DB_PASSWORD=root/g' .env",
-          "sed -i '' 's/^REDIS_HOST=.*/REDIS_HOST=redis/g' .env",
+            "git clone https://github.com/Laradock/laradock.git laradock >/dev/null 2>&1",
+            "echo '/data/' >> .gitignore",
+            'rm -rf laradock/.git',
+            // this will run form the root directory
+            "sed -i '' 's/^DB_HOST=127.0.0.1/DB_HOST=mysql/g' .env",
+            "sed -i '' 's/^DB_DATABASE=laravel/DB_DATABASE=default/g' .env",
+            "sed -i '' 's/^DB_USERNAME=root/DB_USERNAME=root/g' .env",
+            "sed -i '' 's/^DB_PASSWORD=/DB_PASSWORD=root/g' .env",
+            "sed -i '' 's/^REDIS_HOST=.*/REDIS_HOST=redis/g' .env",
 
-          "sed -i '' 's/^APP_NAME=Laravel/APP_NAME=\"$titleCaseName\"/g' .env",
+            "sed -i '' 's/^APP_NAME=Laravel/APP_NAME=\"$titleCaseName\"/g' .env",
         ]);
 
         $process = $this->runCommands(
@@ -311,14 +311,14 @@ class NewCommand extends Command
         );
 
         $process->isSuccessful() ?
-          $this->timeLineOutput(true, $output, 'Installing Laradock...', "✅ done") :
-          $this->timeLineOutput(true, $output, 'Installing Laradock...', "❌ failed");
+            $this->timeLineOutput(true, $output, 'Installing Laradock...', "✅ done") :
+            $this->timeLineOutput(true, $output, 'Installing Laradock...', "❌ failed");
 
         // now that it is cloned, we can run command in the directory
 
         $laradockCommands = array_filter([
-          'cp .env.example .env',
-          'sed -i "" "s+DATA_PATH_HOST=~/.laradock/data+DATA_PATH_HOST=../data+g" .env',
+            'cp .env.example .env',
+            'sed -i "" "s+DATA_PATH_HOST=~/.laradock/data+DATA_PATH_HOST=../data+g" .env',
         ]);
 
         $process = $this->runCommands(
@@ -348,18 +348,18 @@ class NewCommand extends Command
         $this->timeLineOutput(false, $output, 'Installing Breeze...');
 
         $commands = array_filter([
-          "composer require laravel/breeze --dev  >/dev/null 2>&1",
-          trim(sprintf(
-              $this->phpBinary() . ' artisan breeze:install vue --dark %s >/dev/null 2>&1',
-              $input->getOption('ssr') ? '--ssr' : '',
-          ))
+            "composer require laravel/breeze --dev  >/dev/null 2>&1",
+            trim(sprintf(
+                $this->phpBinary() . ' artisan breeze:install vue --dark %s >/dev/null 2>&1',
+                $input->getOption('ssr') ? '--ssr' : '',
+            ))
         ]);
 
         $process = $this->runCommands($commands, $input, $output, workingPath: $directory);
 
         $process->isSuccessful() ?
-          $this->timeLineOutput(true, $output, 'Installing Breeze...', "✅ done") :
-          $this->timeLineOutput(true, $output, 'Installing Breeze...', "❌ failed");
+            $this->timeLineOutput(true, $output, 'Installing Breeze...', "✅ done") :
+            $this->timeLineOutput(true, $output, 'Installing Breeze...', "❌ failed");
 
         $this->commitGitProject($input, $output, 'Install Breeze');
     }
@@ -392,8 +392,8 @@ class NewCommand extends Command
 
         $output->writeln(
             PHP_EOL .
-            "cd $this->projectDirectory && ./deploy.sh seed"
-            . PHP_EOL
+                "cd $this->projectDirectory && ./deploy.sh seed"
+                . PHP_EOL
         );
     }
 
@@ -443,8 +443,8 @@ class NewCommand extends Command
 
         // remove the welcome.blade.php file
         $commands = [
-          //remove the resources/views/welcome.blade.php file
-          "rm -rf $this->projectDirectory/resources/views/welcome.blade.php",
+            //remove the resources/views/welcome.blade.php file
+            "rm -rf $this->projectDirectory/resources/views/welcome.blade.php",
         ];
         $this->runCommands($commands, $input, $output);
 
@@ -460,25 +460,23 @@ class NewCommand extends Command
 
 
         $commands = [
-          'npm i @headlessui/vue',
-          'npm i @heroicons/vue',
+            'npm i @headlessui/vue',
+            'npm i @heroicons/vue',
 
-          'npm i @vueuse/core',
-          'npm i @vueuse/components',
-          'npm i @vueuse/motion',
+            'npm i @vueuse/core',
+            'npm i @vueuse/components',
+            'npm i @vueuse/motion',
 
-          'npm i radix-vue',
-          'npm i @radix-icons/vue',
+            'npm i radix-vue',
+            'npm i @radix-icons/vue',
 
-          'npm i prettier --save-dev',
 
-          'npm i eslint --save-dev',
-          'npm i eslint-plugin-vue --save-dev',
-          'npm i eslint-config-prettier --save-dev',
-          'npm i eslint-plugin-prettier-vue --save-dev',
+            'npm i prettier --save-dev',
+            'npm i prettier-eslint --save-dev',
+            'npm i vue-eslint-parser --save-dev'
 
-          'npm i @iconify/vue --save-dev',
-          'npm i @aszydelko/eslint-config-vue --save-dev',
+            'npm i @iconify/vue --save-dev',
+            'npm i @aszydelko/eslint-config-vue --save-dev',
         ];
 
         $this->runCommands($commands, $input, $output, workingPath: $this->projectDirectory);
@@ -567,8 +565,8 @@ class NewCommand extends Command
 
                 // is this the last line, if so, don't add a new line
                 $result .= $key === count($lines) - 1 ?
-                  $line :
-                  $line . PHP_EOL;
+                    $line :
+                    $line . PHP_EOL;
             }
             return $result;
         }
@@ -611,8 +609,8 @@ class NewCommand extends Command
             $contents = removeMarkersFromStub($contents, $features);
 
             $destinationPath = str_contains($stubFilePath, '/stubs/root/') ?
-              $this->projectDirectory . '/' . str_replace('/stubs/root/', '', str_replace(dirname(__DIR__), '', $stubFilePath)) :
-              $this->projectDirectory . str_replace('/stubs', '', str_replace(dirname(__DIR__), '', $stubFilePath));
+                $this->projectDirectory . '/' . str_replace('/stubs/root/', '', str_replace(dirname(__DIR__), '', $stubFilePath)) :
+                $this->projectDirectory . str_replace('/stubs', '', str_replace(dirname(__DIR__), '', $stubFilePath));
 
             $copied = saveContentToNewDestination($stubFilePath, $contents, $destinationPath);
 
@@ -631,11 +629,11 @@ class NewCommand extends Command
     private function installSetup(InputInterface $input, OutputInterface $output)
     {
         $commands = [
-          'npm install',
-          'npm run build',
-          'php artisan key:generate',
-          'php artisan ziggy:generate',
-          './deploy.sh seed',
+            'php artisan key:generate',
+            'php artisan ziggy:generate',
+            'npm install',
+            'npm run build',
+            './deploy.sh seed',
         ];
         $this->runCommands($commands, $input, $output, workingPath: $this->projectDirectory);
 
@@ -670,46 +668,46 @@ class NewCommand extends Command
     {
 
         $installs = [
-          "FEATURE_LARAVEL_PWA" => function () use ($input, $output) {
-              $this->runCommands([
-                'composer require silviolleite/laravelpwa --prefer-dist',
-                'php artisan vendor:publish --provider="LaravelPWA\Providers\LaravelPWAServiceProvider"',
-              ], $input, $output, workingPath: $this->projectDirectory);
-          },
+            "FEATURE_LARAVEL_PWA" => function () use ($input, $output) {
+                $this->runCommands([
+                    'composer require silviolleite/laravelpwa --prefer-dist',
+                    'php artisan vendor:publish --provider="LaravelPWA\Providers\LaravelPWAServiceProvider"',
+                ], $input, $output, workingPath: $this->projectDirectory);
+            },
 
-          "FEATURE_LARAVEL_PERMISSION" => function () use ($input, $output) {
-              $this->runCommands([
-                "composer require spatie/laravel-permission",
-                // 'php artisan vendor:publish --provider="Spatie\Permission\PermissionServiceProvider"',
-              ], $input, $output, workingPath: $this->projectDirectory);
-          },
+            "FEATURE_LARAVEL_PERMISSION" => function () use ($input, $output) {
+                $this->runCommands([
+                    "composer require spatie/laravel-permission",
+                    // 'php artisan vendor:publish --provider="Spatie\Permission\PermissionServiceProvider"',
+                ], $input, $output, workingPath: $this->projectDirectory);
+            },
 
-          "FEATURE_LARAVEL_SCHEMALESS_ATTRIBUTES" => function () use ($input, $output) {
-              $this->runCommands([
-                "composer require spatie/laravel-schemaless-attributes",
-              ], $input, $output, workingPath: $this->projectDirectory);
-          },
+            "FEATURE_LARAVEL_SCHEMALESS_ATTRIBUTES" => function () use ($input, $output) {
+                $this->runCommands([
+                    "composer require spatie/laravel-schemaless-attributes",
+                ], $input, $output, workingPath: $this->projectDirectory);
+            },
 
-          "FEATURE_LARAVEL_CASHIER" => function () use ($input, $output) {
-              $this->runCommands([
-                "composer require laravel/cashier",
-              ], $input, $output, workingPath: $this->projectDirectory);
-          },
-          "FEATURE_LARAVEL_TELESCOPE" => function () use ($input, $output) {
-              $this->runCommands([
-                "composer require laravel/telescope ",
-                //wait for the composer require to finish before running the next command
-                'while [ ! -d "vendor/laravel/telescope" ]; do sleep 1; done',
-                'php artisan telescope:install',
-              ], $input, $output, workingPath: $this->projectDirectory);
-          },
-          "FEATURE_VENTURECRAFT_REVISIONABLE" => function () use ($input, $output) {
-              $this->runCommands([
-                "composer require venturecraft/revisionable",
-                'php artisan package:discover',
-                "php artisan vendor:publish --provider='Venturecraft\Revisionable\RevisionableServiceProvider'",
-              ], $input, $output, workingPath: $this->projectDirectory);
-          },
+            "FEATURE_LARAVEL_CASHIER" => function () use ($input, $output) {
+                $this->runCommands([
+                    "composer require laravel/cashier",
+                ], $input, $output, workingPath: $this->projectDirectory);
+            },
+            "FEATURE_LARAVEL_TELESCOPE" => function () use ($input, $output) {
+                $this->runCommands([
+                    "composer require laravel/telescope ",
+                    //wait for the composer require to finish before running the next command
+                    'while [ ! -d "vendor/laravel/telescope" ]; do sleep 1; done',
+                    'php artisan telescope:install',
+                ], $input, $output, workingPath: $this->projectDirectory);
+            },
+            "FEATURE_VENTURECRAFT_REVISIONABLE" => function () use ($input, $output) {
+                $this->runCommands([
+                    "composer require venturecraft/revisionable",
+                    'php artisan package:discover',
+                    "php artisan vendor:publish --provider='Venturecraft\Revisionable\RevisionableServiceProvider'",
+                ], $input, $output, workingPath: $this->projectDirectory);
+            },
 
         ];
 
@@ -763,8 +761,8 @@ class NewCommand extends Command
         $phpBinary = (new PhpExecutableFinder())->find(false);
 
         return $phpBinary !== false
-          ? ProcessUtils::escapeArgument($phpBinary)
-          : 'php';
+            ? ProcessUtils::escapeArgument($phpBinary)
+            : 'php';
     }
 
     protected function runCommands($commands, InputInterface $input, OutputInterface $output, string $workingPath = null, array $env = [])
