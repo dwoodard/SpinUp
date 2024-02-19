@@ -473,7 +473,7 @@ class NewCommand extends Command
 
             'npm i prettier --save-dev',
             'npm i prettier-eslint --save-dev',
-            'npm i vue-eslint-parser --save-dev'
+            'npm i vue-eslint-parser --save-dev',
 
             'npm i @iconify/vue --save-dev',
             'npm i @aszydelko/eslint-config-vue --save-dev',
