@@ -82,11 +82,12 @@ if [ ${1:-1} == 'build' ]; then
       phpmyadmin
     cd ..
 
-    echo '-----------------------------------------------------------'
-    echo '|  Website:    http://localhost                            |'
-    echo '|  Phpmyadmin: http://localhost:8081 root:root             |'
-    echo '|  Mailhog:    http://localhost:8025/                      |'
-    echo '-----------------------------------------------------------'
+    echo '--------------------------------------------------------------'
+    echo '|  Website:                   http://localhost                |'
+    echo '|  Website with devtools:     npm run dev                     |'
+    echo '|  Phpmyadmin:                http://localhost:8081 root:root |'
+    echo '|  Mailhog:                   http://localhost:8025/          |'
+    echo '--------------------------------------------------------------'
   fi
 
 

@@ -195,6 +195,8 @@ class NewCommand extends Command
 
         $this->installStubs($input, $output);
 
+        $this->updatePackageFile($input, $output);
+
         $this->installLayout($input, $output);
 
         $this->installSetup($input, $output);
@@ -470,14 +472,16 @@ class NewCommand extends Command
             'npm i radix-vue',
             'npm i @radix-icons/vue',
 
-
             'npm i prettier --save-dev',
+            'npm i eslint --save-dev',
+            'npm i eslint-plugin-vue@latest --save-dev',
             'npm i prettier-eslint --save-dev',
             'npm i vue-eslint-parser --save-dev',
 
             'npm i @iconify/vue --save-dev',
-            'npm i @aszydelko/eslint-config-vue --save-dev',
-        ];
+
+            // 'npm i vite-plugin-vue-devtools --save-dev',
+         ];
 
         $this->runCommands($commands, $input, $output, workingPath: $this->projectDirectory);
 
@@ -626,6 +630,32 @@ class NewCommand extends Command
         $this->commitGitProject($input, $output, 'Install Stubs');
     }
 
+    private function updatePackageFile(InputInterface $input, OutputInterface $output)
+    {
+
+        $this->timeLineOutput(false, $output, 'Updating package.json...');
+
+        // Read the JSON file
+        $jsonFile = $this->projectDirectory . '/package.json';
+        $jsonContent = file_get_contents($jsonFile);
+
+        // Parse JSON into array
+        $config = json_decode($jsonContent, true);
+
+        // Find and modify the desired key
+        if (isset($config['scripts']['dev']) && $config['scripts']['dev'] === 'vite') {
+            $config['scripts']['dev'] = 'vite --mode development';
+            $config['scripts']['prod'] = 'vite';
+        }
+
+        // Write the modified array back to the JSON file
+        file_put_contents($jsonFile, json_encode($config, JSON_PRETTY_PRINT));
+
+        $this->commitGitProject($input, $output, 'Update package.json');
+
+        $this->timeLineOutput(true, $output, 'Updating package.json...', "✅ done");
+    }
+
     private function installSetup(InputInterface $input, OutputInterface $output)
     {
         $commands = [
@@ -634,6 +664,7 @@ class NewCommand extends Command
             'npm install',
             'npm run build',
             './deploy.sh seed',
+            'vite --mode development',
         ];
         $this->runCommands($commands, $input, $output, workingPath: $this->projectDirectory);
 
