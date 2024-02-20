@@ -480,6 +480,11 @@ class NewCommand extends Command
 
             'npm i @iconify/vue --save-dev',
 
+            'npm i tailwindcss-animate --save-dev',
+            'npm i radix-vue',
+            'npm i clsx',
+            'npm i tailwind-merge',
+
             // 'npm i vite-plugin-vue-devtools --save-dev',
          ];
 
