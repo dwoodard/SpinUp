@@ -8,7 +8,7 @@
     "baseColor": "slate",
     "cssVariables": true
   },
-  "framework": "vite",
+  "framework": "laravel",
   "aliases": {
     "components": "@/Components",
     "utils": "@/lib/utils"

@@ -1,4 +1,4 @@
-module.exports = {
+export default {
   $schema: 'http://json.schemastore.org/eslintrc',
   globals: {
     route: 'readonly',
@@ -53,7 +53,6 @@ module.exports = {
       'error',
       {
         multiline: true,
-        minItems: 2,
       },
     ],
     'no-multiple-empty-lines': [
