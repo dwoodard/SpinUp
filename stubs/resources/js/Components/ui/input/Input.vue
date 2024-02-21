@@ -28,7 +28,7 @@ const modelValue = useVModel(props, 'modelValue', emits, {
 
 <template>
   <div
-    class="p-2 my-2 rounded-lg group"
+    class="p-2 my-2 rounded-lg group bg-transparent dark:bg-transparent group-hover:bg-gray-100 dark:group-hover:bg-gray-800"
     :class="{
       'border border-red-600': props.error,
       'border border-transparent': !props.error,
@@ -53,9 +53,9 @@ const modelValue = useVModel(props, 'modelValue', emits, {
     <label
       :for="uniqueID"
       v-if="$props.label"
-      class="block text-sm font-medium mb-1"
+      class="text-sm font-medium mb-1 dark:text-primary"
       :class="{
-        'text-red-600': props.error,
+        'text-red-600 dark:text-red-600': props.error,
       }"
     >
       {{ $props.label }}
@@ -91,23 +91,27 @@ const modelValue = useVModel(props, 'modelValue', emits, {
 <style scoped>
 input {
   @apply flex
-         h-10
-         w-full
-         rounded-md
-         border
-         border-gray-200
-         focus:border-gray-500
-         focus:ring-0
-         focus:ring-gray-100
-         px-3
-         py-2
-         text-sm
-         file:border-0
-         file:bg-transparent
-         file:text-sm
-         file:font-medium
-         placeholder:text-muted-foreground
-         disabled:cursor-not-allowed
-         disabled:opacity-50;
+    text-primary
+    h-10
+    w-full
+    rounded-md
+    border
+    border-gray-200
+    focus:border-gray-500
+    focus:ring-0
+    focus:ring-gray-100
+    px-3 py-2
+    text-sm
+    file:border-0 file:bg-transparent file:text-sm file:font-medium
+    placeholder:text-muted-foreground
+    placeholder:opacity-50
+    placeholder:italic
+
+
+    disabled:cursor-not-allowed
+    disabled:opacity-50
+    
+    dark:focus:border-gray-100
+    dark:text-gray-800;
 }
 </style>
