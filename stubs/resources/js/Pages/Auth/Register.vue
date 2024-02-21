@@ -1,84 +1,86 @@
 <script setup>
 import GuestLayout from '@/Layouts/GuestLayout.vue'
-
 import { Input } from '@/Components/ui/input'
-import { Checkbox } from '@/Components/ui/checkbox'
 import { Button } from '@/Components/ui/button'
-
-import PrimaryButton from '@/Components/PrimaryButton.vue'
 import { Head, Link, useForm } from '@inertiajs/vue3'
 
-defineProps({
-  canResetPassword: {
-    type: Boolean,
-  },
-  status: {
-    type: String,
-  },
-})
-
 const form = useForm({
+  first_name: '',
+  last_name: '',
   email: '',
   password: '',
-  remember: false,
+  password_confirmation: '',
 })
 
 const submit = () => {
-  form.post(route('login'), {
-    onFinish: () => form.reset('password'),
+  form.post(route('register'), {
+    onFinish: () => form.reset('password', 'password_confirmation'),
   })
 }
 </script>
 
 <template>
   <GuestLayout>
-    <Head title="Log in" />
-
-    <div v-if="status" class="mb-4 font-medium text-sm text-green-600">
-      {{ status }}
-    </div>
+    <Head title="Register" />
 
     <form @submit.prevent="submit">
       <Input
-        label="Email"
-        v-model="form.email"
-        placeholder="email"
-        :error="form.errors.email"
+        label="First Name"
+        v-model="form.first_name"
+        :error="form.errors.first_name"
+        required
+        autofocus
       />
 
       <Input
-        type="password"
-        label="Password"
-        v-model="form.password"
-        placeholder="password"
-        :error="form.errors.password"
+        label="Last Name"
+        v-model="form.last_name"
+        :error="form.errors.last_name"
+        required
+        autofocus
       />
 
-      <div class="block mt-4">
-        <label class="flex items-center">
-          <Checkbox name="remember" v-model:checked="form.remember" />
-          <span class="ms-2 text-sm text-gray-600 dark:text-gray-400"
-            >Remember me</span
-          >
-        </label>
-      </div>
+      <Input
+        label="Email"
+        type="email"
+        v-model="form.email"
+        :error="form.errors.email"
+        required
+        autocomplete="email"
+      />
+
+      <Input
+        label="Password"
+        type="password"
+        v-model="form.password"
+        :error="form.errors.password"
+        required
+        autocomplete="new-password"
+      />
+
+      <Input
+        label="Confirm Password"
+        type="password"
+        v-model="form.password_confirmation"
+        :error="form.errors.password_confirmation"
+        required
+        autocomplete="new-password"
+      />
 
       <div class="flex items-center justify-end mt-4">
         <Link
-          v-if="canResetPassword"
-          :href="route('password.request')"
+          :href="route('login')"
           class="underline text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-800"
         >
-          Forgot your password?
+          Already registered?
         </Link>
 
         <Button
-          variant="default"
           class="ms-4"
           :class="{ 'opacity-25': form.processing }"
           :disabled="form.processing"
         >
-          Log in
+          Register
         </Button>
       </div>
     </form>

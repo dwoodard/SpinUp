@@ -372,7 +372,6 @@ class NewCommand extends Command
         $commands = [];
 
         if ($init) {
-
             $commands[] = "git init";
             $message = $message ?: "Initial commit";
         }
@@ -381,8 +380,6 @@ class NewCommand extends Command
         $commands[] = "git commit -m '$message' $quite";
 
         $this->runCommands($commands, $input, $output, workingPath: $this->projectDirectory);
-
-        // $this->timeLineOutput(true, $output, 'Initializing Git...',  "✅ done");
     }
 
 
@@ -398,10 +395,6 @@ class NewCommand extends Command
                 . PHP_EOL
         );
     }
-
-
-
-
 
     /*
       |--------------------------------------------------------------------------
@@ -484,6 +477,8 @@ class NewCommand extends Command
             'npm i radix-vue',
             'npm i clsx',
             'npm i tailwind-merge',
+            'npm i class-variance-authority',
+            'npm i @tanstack/vue-table'
 
             // 'npm i vite-plugin-vue-devtools --save-dev',
          ];
@@ -673,6 +668,7 @@ class NewCommand extends Command
         ];
         $this->runCommands($commands, $input, $output, workingPath: $this->projectDirectory);
 
+        echo "Trying to commit the project... \n";
         $this->commitGitProject($input, $output, 'Install Setup');
     }
 
@@ -872,11 +868,5 @@ class NewCommand extends Command
             $file,
             preg_replace($pattern, $replace, file_get_contents($file))
         );
-    }
-
-    private function clear()
-    {
-        /* some voodoo magic to clear the terminal */
-        echo chr(27) . chr(91) . 'H' . chr(27) . chr(91) . 'J';
     }
 }
