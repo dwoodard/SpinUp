@@ -1,6 +1,17 @@
 #!/usr/bin/env bash
 # Example useage: [root of project] ./deploy.sh
 
+# if --help
+if [ ${1:-1} == '--help' ]; then
+  echo "\nUsage: [root of project] ./deploy.sh [down|build|fresh|seed]"
+  echo -e "\e[32mdown\e[0m: stops the docker containers"
+  echo -e "\e[32mbuild\e[0m: builds the docker containers"
+  echo -e "\e[32mfresh\e[0m: truncates the database and runs the migrations"
+  echo -e "\e[32mseed\e[0m: runs the migrations and seeds the database"
+  exit 0
+fi
+
+
 # docker-compose commands
 
 if [ ${1:-1} == 'down' ]; then
