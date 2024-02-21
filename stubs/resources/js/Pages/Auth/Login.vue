@@ -46,12 +46,7 @@ const submit = () => {
         placeholder="email"
         :error="form.errors.email"
       />
-      <Input
-        label="Alsdfasdlkfj"
-        v-model="form.email"
-        placeholder="asdfasdfasdf"
-        :error="form.errors.email"
-      />
+
 
       <Input
         type="password"
