@@ -17,7 +17,62 @@ export default {
   plugins: ['vue'],
   rules: {
     'vue/multi-word-component-names': 'off',
-    'vue/max-attributes-per-line': 'off',
+
+    'vue/first-attribute-linebreak': [
+      'error',
+      {
+        singleline: 'ignore',
+        multiline: 'beside',
+      },
+    ],
+    'vue/html-indent': [
+      'error',
+      2,
+      {
+        attribute: 1,
+        baseIndent: 1,
+        closeBracket: 0,
+        alignAttributesVertically: true,
+        ignores: [],
+      },
+    ],
+    'vue/no-multi-spaces': [
+      'error',
+      {
+        ignoreProperties: false,
+      },
+    ],
+    'vue/html-closing-bracket-spacing': [
+      'error',
+      {
+        startTag: 'never',
+        endTag: 'never',
+        selfClosingTag: 'always',
+      },
+    ],
+
+    'vue/html-closing-bracket-newline': [
+      'error',
+      {
+        singleline: 'never',
+        multiline: 'always',
+        selfClosingTag: {
+          singleline: 'never',
+          multiline: 'always',
+        },
+      },
+    ],
+
+    'vue/max-attributes-per-line': [
+      {
+        singleline: {
+          max: 1,
+        },
+        multiline: {
+          max: 1,
+        },
+      },
+    ],
     'max-len': 'off',
     'import/prefer-default-export': 'off',
     'vue/require-prop-types': 'off',
