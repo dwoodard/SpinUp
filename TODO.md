@@ -1,6 +1,5 @@
 #TODO
 
- 
 - Install Layout Templates
   - we all ready have a lot through breeze
     - tailwindcss
@@ -46,7 +45,11 @@
   - append routes/admin.php to web.php
 
 - Seeder for:
- - Users
+  - Users
+
+
+- look into this article:
+  - https://advanced-inertia.com/blog/typescript
 
 
 
