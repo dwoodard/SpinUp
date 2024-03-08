@@ -154,9 +154,6 @@ if [ ${1:-1} == 'seed' ]; then
   docker exec -it laradock-workspace-1 sh -c "php artisan migrate:fresh --seed"
 fi
 
-
-
-
 docker exec -it laradock-workspace-1 sh -c "php artisan migrate"
 
-$SHELL # Open a new shell to run the application
+exit 0

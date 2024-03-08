@@ -663,13 +663,12 @@ class NewCommand extends Command
             'php artisan ziggy:generate',
             'npm install',
             'npm run build',
-            './deploy.sh seed',
-            'vite --mode development',
-        ];
+            'git add . && git commit -m "Install Setup"',
+            './deploy.sh seed && vite --mode development' ];
         $this->runCommands($commands, $input, $output, workingPath: $this->projectDirectory);
 
-        echo "Trying to commit the project... \n";
-        $this->commitGitProject($input, $output, 'Install Setup');
+        $this->timeLineOutput(true, $output, 'Install Setup...', "✅ done");
+
     }
 
 

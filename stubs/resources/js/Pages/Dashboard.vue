@@ -69,9 +69,7 @@ import { Button } from '@/Components/ui/button'
             laudantium, blanditiis saepe eum?
           </p>
         </CardDescription>
-        <CardContent>
-          <p class="text-gray-500">Card Content</p>
-        </CardContent>
+
         <CardFooter class="p-2">
           <Button variant="outline">Button test</Button>
         </CardFooter>
