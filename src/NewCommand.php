@@ -250,7 +250,8 @@ class NewCommand extends Command
         $this->timeLineOutput(true, $output, 'Installing Laravel...');
 
         $commands = [
-            "composer create-project $quite laravel/laravel $this->projectDirectory  --remove-vcs --prefer-dist",
+            // "composer create-project $quite laravel/laravel $this->projectDirectory  --remove-vcs --prefer-dist",
+            "composer create-project $quite laravel/laravel:^10.0 $this->projectDirectory  --remove-vcs --prefer-dist",
         ];
 
         $this->runCommands($commands, $input, $output);
