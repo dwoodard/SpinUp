@@ -4,20 +4,13 @@
 ## A Project Generator for Laravel, Breeze (vue) and Laradock
 
 
+```
+composer global require dwoodard/spinup:dev-master
+```
 
  
 
-```mermaid
-flowchart TD
-
-CheckIfProjectExists[handleIfExsistingProject] -->|yes| InstallLaravel[installLaravel]
-CheckIfProjectExists -->|no| CreateNewProject[createProject]
-InstallLaravel --> InstallBreeze[installBreeze]
-InstallBreeze --> AskToInstallLaradock[installLaradock]
-AskToInstallLaradock -->|yes| InstallLaradock
-CreateNewProject --> InstallLaravel
-CreateNewProject --> InstallLaradock
-```
+ 
 
 
  
