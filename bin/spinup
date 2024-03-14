@@ -8,6 +8,6 @@ if (file_exists(__DIR__ . '/../../../autoload.php')) {
 }
 
 $app = new Symfony\Component\Console\Application('Spinup Installer', '5.4.0');
-$app->add(new Spinup\Installer\Console\NewCommand());
+$app->add(new Laravel\Installer\Console\NewCommand);
 
 $app->run();
