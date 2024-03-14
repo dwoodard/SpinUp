@@ -1,6 +1,6 @@
 <?php
 
-namespace Laravel\Installer\Console;
+namespace Dwoodard\Spinup\Console;
 
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Composer;

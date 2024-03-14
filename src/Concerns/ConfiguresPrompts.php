@@ -1,6 +1,6 @@
 <?php
 
-namespace Laravel\Installer\Console\Concerns;
+namespace Dwoodard\Spinup\Console\Concerns;
 
 use Laravel\Prompts\ConfirmPrompt;
 use Laravel\Prompts\MultiSelectPrompt;

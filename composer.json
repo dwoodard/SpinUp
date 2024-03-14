@@ -23,12 +23,12 @@
   ],
   "autoload": {
       "psr-4": {
-          "Laravel\\Installer\\Console\\": "src/"
+          "Dwoodard\\Spinup\\Console\\": "src/"
       }
   },
   "autoload-dev": {
       "psr-4": {
-          "Laravel\\Installer\\Console\\Tests\\": "tests/"
+          "Dwoodard\\Spinup\\Console\\Tests\\": "tests/"
       }
   },
   "config": {
