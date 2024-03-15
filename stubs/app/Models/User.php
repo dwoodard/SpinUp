@@ -6,7 +6,6 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Laravel\Sanctum\HasApiTokens;
 
 # FEATURE_LARAVEL_SCHEMALESS_ATTRIBUTES:START
 use Illuminate\Database\Eloquent\Builder;
@@ -19,11 +18,11 @@ use Spatie\Permission\Traits\HasRoles;
 
 # FEATURE_VENTURECRAFT_REVISIONABLE:START
 use Venturecraft\Revisionable\RevisionableTrait;
+
 # FEATURE_VENTURECRAFT_REVISIONABLE:END
 
 class User extends Authenticatable
 {
-    use HasApiTokens;
     use HasFactory;
     use Notifiable;
     # FEATURE_LARAVEL_PERMISSION:START
@@ -67,18 +66,24 @@ class User extends Authenticatable
         'remember_token',
     ];
 
+
+
+
     /**
-     * The attributes that should be cast.
+     * Get the attributes that should be cast.
      *
-     * @var array<string, string>
+     * @return array<string, string>
      */
-    protected $casts = [
-        'email_verified_at' => 'datetime',
-        'password' => 'hashed',
-        # FEATURE_LARAVEL_SCHEMALESS_ATTRIBUTES:START
-        'settings' => SchemalessAttributes::class,
-        # FEATURE_LARAVEL_SCHEMALESS_ATTRIBUTES:END
+    protected function casts(): array
+    {
+        return [
+            'email_verified_at' => 'datetime',
+            'password' => 'hashed',
+            # FEATURE_LARAVEL_SCHEMALESS_ATTRIBUTES:START
+            'settings' => SchemalessAttributes::class,
+            # FEATURE_LARAVEL_SCHEMALESS_ATTRIBUTES:END
     ];
+    }
 
     # FEATURE_LARAVEL_SCHEMALESS_ATTRIBUTES:START
     public function scopeWithSettings(): Builder

@@ -70,7 +70,8 @@ class NewCommand extends Command
             ->addOption('force', 'f', InputOption::VALUE_NONE, 'Forces install even if the directory already exists')
             ->addOption('dev', null, InputOption::VALUE_NONE, 'Installs the latest "development" release')
             ->addOption('laravel-quiet', null, InputOption::VALUE_OPTIONAL, 'Dont show any Laravel Install', true)
-
+            // Laravel Version
+            ->addOption('laravel-version', null, InputOption::VALUE_OPTIONAL, 'The version of Laravel to install', '11.0')
 
             //debug
             ->addOption('debug', null, InputOption::VALUE_NONE, 'Debug')
@@ -130,7 +131,9 @@ class NewCommand extends Command
     </>
 '
                 // show name of the project if passed as an argument
+
                 . ($input->getArgument('name') ? ' - Name: <options=bold>' . $input->getArgument('name') . '</>' . PHP_EOL : '')
+                . ($input->getOption('laravel-version') ? ' - Laravel Version: <options=bold>' . $input->getOption('laravel-version') . '</>' . PHP_EOL : '')
                 . ($input->getArgument('name') ? ' - Project directory: <options=bold>' . getcwd() . '/' . $input->getArgument('name') . '</>' . PHP_EOL : '')
                 . ($input->getOption('laradock') ? ' - Laradock: <options=bold>Yes</>' . PHP_EOL : '')
                 . ($input->getOption('force') ? ' - Force Delete Project: <options=bold>Yes</>' . PHP_EOL : '')
@@ -246,12 +249,13 @@ class NewCommand extends Command
     {
 
         $quite = $input->getOption('laravel-quiet') ? '--quiet' : '';
+        $version = $input->getOption('laravel-version');
 
         $this->timeLineOutput(true, $output, 'Installing Laravel...');
 
         $commands = [
             // "composer create-project $quite laravel/laravel $this->projectDirectory  --remove-vcs --prefer-dist",
-            "composer create-project $quite laravel/laravel:^10.0 $this->projectDirectory  --remove-vcs --prefer-dist",
+            "composer create-project $quite laravel/laravel:^$version $this->projectDirectory  --remove-vcs --prefer-dist",
         ];
 
         $this->runCommands($commands, $input, $output);
@@ -279,6 +283,7 @@ class NewCommand extends Command
       */
     protected function installLaradock(InputInterface $input, OutputInterface $output)
     {
+
         $input->setOption('laradock', $input->getOption('laradock') || confirm(
             label: 'Would you like to install Laradock?',
             default: true,
