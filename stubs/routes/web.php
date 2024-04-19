@@ -1,6 +1,5 @@
 <?php
 
-use App\Http\Controllers\ApplicationController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UserSettingsController;
 use App\Models\User;
@@ -23,8 +22,6 @@ Route::get('/', function () {
 })->name('home');
 
 
-//Resource Application
-Route::resource('/apply', ApplicationController::class);
 
 
 
