@@ -484,7 +484,12 @@ class NewCommand extends Command
             'npm i clsx',
             'npm i tailwind-merge',
             'npm i class-variance-authority',
-            'npm i @tanstack/vue-table'
+            'npm i @tanstack/vue-table',
+            'npm i lucide-vue-next',
+            'npm i v-calendar@next @popperjs/core',
+            'npm i embla-carousel-vue',
+            'npm i @internationalized/date'
+
 
             // 'npm i vite-plugin-vue-devtools --save-dev',
          ];

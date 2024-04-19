@@ -73,7 +73,11 @@ export default {
         },
       },
     ],
-    'max-len': 'off',
+    'max-len': {
+      code: 120,
+      ignore: 'conditional',
+      ignoreAttributes: 'true',
+    },
     'import/prefer-default-export': 'off',
     'vue/require-prop-types': 'off',
     'prefer-destructuring': 'off',

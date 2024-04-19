@@ -1,13 +1,16 @@
-const animate = require('tailwindcss-animate')
-const forms = require('@tailwindcss/forms')
-
+import defaultTheme from 'tailwindcss/defaultTheme'
+import forms from '@tailwindcss/forms'
+ 
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   darkMode: ['class'],
   safelist: ['dark'],
-
-  content: ['./resources/**/*.{js,jsx,vue}'],
-
+  content: [
+    './vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php',
+    './storage/framework/views/*.php',
+    './resources/views/**/*.blade.php',
+    './resources/js/**/*.{ts,tsx,vue}',
+  ],
   theme: {
     container: {
       center: true,
@@ -58,6 +61,9 @@ module.exports = {
         md: 'calc(var(--radius) - 2px)',
         sm: 'calc(var(--radius) - 4px)',
       },
+      fontFamily: {
+        sans: ['Figtree', ...defaultTheme.fontFamily.sans],
+      },
       keyframes: {
         'accordion-down': {
           from: { height: 0 },
@@ -84,5 +90,5 @@ module.exports = {
       },
     },
   },
-  plugins: [animate, forms],
+  plugins: [forms, require('tailwindcss-animate')],
 }

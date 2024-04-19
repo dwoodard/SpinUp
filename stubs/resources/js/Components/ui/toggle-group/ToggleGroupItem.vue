@@ -1,17 +1,23 @@
 <script setup lang="ts">
 import type { VariantProps } from 'class-variance-authority'
 import { type HTMLAttributes, computed, inject } from 'vue'
-import { ToggleGroupItem, type ToggleGroupItemProps, useForwardProps } from 'radix-vue'
-import { toggleVariants } from '@/lib/registry/default/ui/toggle'
+import {
+  ToggleGroupItem,
+  type ToggleGroupItemProps,
+  useForwardProps,
+} from 'radix-vue'
+// import { toggleVariants } from '@/Components/ui/toggle-group'
 import { cn } from '@/lib/utils'
 
-type ToggleGroupVariants = VariantProps<typeof toggleVariants>
+// type ToggleGroupVariants = VariantProps<typeof toggleVariants>
 
-const props = defineProps<ToggleGroupItemProps & {
-  class?: HTMLAttributes['class']
-  variant?: ToggleGroupVariants['variant']
-  size?: ToggleGroupVariants['size']
-}>()
+const props = defineProps<
+  ToggleGroupItemProps & {
+    class?: HTMLAttributes['class']
+    variant?: ToggleGroupVariants['variant']
+    size?: ToggleGroupVariants['size']
+  }
+>()
 
 const context = inject<ToggleGroupVariants>('toggleGroup')
 
@@ -25,10 +31,16 @@ const forwardedProps = useForwardProps(delegatedProps)
 
 <template>
   <ToggleGroupItem
-    v-bind="forwardedProps" :class="cn(toggleVariants({
-      variant: context?.variant || variant,
-      size: context?.size || size,
-    }), props.class)"
+    v-bind="forwardedProps"
+    :class="
+      cn(
+        toggleVariants({
+          variant: context?.variant || variant,
+          size: context?.size || size,
+        }),
+        props.class
+      )
+    "
   >
     <slot />
   </ToggleGroupItem>
