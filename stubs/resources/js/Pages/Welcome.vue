@@ -221,7 +221,7 @@
             <div class="mt-24 sm:mt-32 lg:mt-16">
               <a href="#" class="inline-flex space-x-6">
                 <span
-                  class="rounded-full bg-indigo-500/10 px-3 py-1 text-sm font-semibold leading-6 text-indigo-400 ring-1 ring-inset ring-indigo-500/20"
+                  class="rounded-full bg-indigo-500/50 px-3 py-1 text-sm font-semibold leading-6 text-indigo-200 ring-1 ring-inset ring-indigo-500/20"
                   >Latest updates</span
                 >
                 <span
@@ -242,11 +242,9 @@
               fugiat aliqua.
             </p>
             <div class="mt-10 flex items-center gap-x-6">
-              <a
-                href="#"
-                class="rounded-md bg-indigo-500 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-400"
-                >Get started</a
-              >
+              <Button as-child>
+                <Link :href="route('login')">Get started</Link>
+              </Button>
               <a href="#" class="text-sm font-semibold leading-6 text-white"
                 >Live demo <span aria-hidden="true">→</span></a
               >
@@ -276,6 +274,8 @@ import {
   MenuItems,
 } from '@headlessui/vue'
 import { Bars3Icon, BellIcon, XMarkIcon } from '@heroicons/vue/24/outline'
+
+import { Button } from '@/Components/ui/button'
 
 const page = usePage()
 const user = page.props.auth.user
