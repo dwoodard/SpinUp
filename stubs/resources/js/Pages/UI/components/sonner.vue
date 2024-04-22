@@ -8,8 +8,12 @@ import { Button } from '@/Components/ui/button'
 
 <template>
   <Layout>
-    <Toaster />
-    <Toaster />
+    <Toaster
+      :duration="5000"
+      :max="5"
+      :transition="true"
+      :transitionDuration="1200"
+    />
 
     <Button
       variant="outline"

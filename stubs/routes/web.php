@@ -66,6 +66,7 @@ Route::prefix('/ui')->group(function () {
         'skeleton',
         'slider',
         'sonner',
+        'stepper',
         'switch',
         'table',
         'tabs',

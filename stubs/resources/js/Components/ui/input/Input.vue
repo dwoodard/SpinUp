@@ -15,6 +15,7 @@ const props = defineProps({
   name: { type: String },
   disabled: { type: Boolean },
   required: { type: Boolean },
+  helpText: { type: String },
 })
 
 const emits = defineEmits(['update:modelValue'])
@@ -58,12 +59,13 @@ const modelValue = useVModel(props, 'modelValue', emits, {
         'text-red-600 dark:text-red-600': props.error,
       }"
     >
-      {{ $props.label }}
+      {{ $props.label }} {{ props.required ? '* ' : '' }}
     </label>
 
     <input
       :id="uniqueID"
       v-bind="attrs"
+      @blur="$emit('blur', $event)"
       :name="$props.name"
       ref="input"
       :placeholder="$props.placeholder"
@@ -82,7 +84,14 @@ const modelValue = useVModel(props, 'modelValue', emits, {
       :disabled="props.disabled"
     />
 
-    <p v-if="props.error" class="mt-2 text-sm text-red-600 dark:text-red-400">
+    <p
+      v-if="props.helpText"
+      class="text-muted-foreground dark:text-muted-foreground text-sm italic"
+    >
+      {{ props.helpText }}
+    </p>
+
+    <p v-show="props.error" class="mt-2 text-sm text-red-600 dark:text-red-400">
       {{ props.error }}
     </p>
   </div>
@@ -107,10 +116,9 @@ input {
     placeholder:opacity-50
     placeholder:italic
 
-
     disabled:cursor-not-allowed
     disabled:opacity-50
-    
+
     dark:focus:border-gray-100
     dark:text-gray-800;
 }

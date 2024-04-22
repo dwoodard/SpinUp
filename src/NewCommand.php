@@ -490,10 +490,9 @@ class NewCommand extends Command
             'npm i lucide-vue-next',
             'npm i v-calendar@next @popperjs/core',
             'npm i embla-carousel-vue',
-            'npm i @internationalized/date'
+            'npm i @internationalized/date',
 
-
-            // 'npm i vite-plugin-vue-devtools --save-dev',
+            'npm i maska'
          ];
 
         $this->runCommands($commands, $input, $output, workingPath: $this->projectDirectory);
